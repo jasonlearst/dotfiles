@@ -35,8 +35,8 @@ set nobackup nowritebackup
 set showmatch
 
 " tabs and shifs are 2 spaces, no tabs
-set tabstop=2
-set shiftwidth=2
+set tabstop=3
+set shiftwidth=3
 set expandtab
 
 " better backspacing
@@ -75,13 +75,13 @@ set smartindent
 set cindent
 
 " tab spacing (settings below are just to unify it)
-set tabstop=2
+set tabstop=3
 
 " unify
-set softtabstop=2
+set softtabstop=3
 
 " unify
-set shiftwidth=2
+set shiftwidth=3
 
 " no tabs please
 set expandtab
