@@ -1,5 +1,8 @@
+" Do these things only for a windows machine
 if has('win32') || has('win64')
   set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after
+" open gui maximized
+au GUIEnter * simalt ~x
 endif
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -16,9 +19,6 @@ set laststatus=2
 
 " gotta pick a theme
 color apprentice
-
-" open gui maximized
-au GUIEnter * simalt ~x
 
 au GUIEnter tab ball
 
