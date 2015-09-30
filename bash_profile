@@ -7,7 +7,7 @@ alias ls="ls -GFlash"
 ###################
 
 # git command autocompletion script
-source ~/.git-completion.bash
+source ~/dotfiles/git-completion.bash
 
 # git commamands simplified
 alias gst='git status'
