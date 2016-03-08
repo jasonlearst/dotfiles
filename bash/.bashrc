@@ -23,9 +23,6 @@ fi
 #### MY ALIASES ###
 ###################
 
-# git command autocompletion script
-source ~/.dotfiles/git-completion.bash
-
 # git commamands simplified
 alias gst='git status'
 alias gco='git checkout'
