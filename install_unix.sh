@@ -5,10 +5,10 @@
 ############################
 
 ########## Variables
-
-dir=~/.dotfiles                           # dotfiles directory
+cd "$(dirname "$0")"
+DOTFILES_DIR=~$(pwd -P)                     # dotfiles directory
 olddir=~/.dotfiles_old                    # old dotfiles backup directory
-files="vimrc vim bashrc bash_profile"    # list of files/folders to symlink in homedir
+files="vim bash"                   # list of files/folders to symlink in homedir
 
 ##########
 
