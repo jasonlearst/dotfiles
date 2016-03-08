@@ -24,7 +24,7 @@ fi
 ###################
 
 # git command autocompletion script
-source ~/dotfiles/git-completion.bash
+source ~/.dotfiles/git-completion.bash
 
 # git commamands simplified
 alias gst='git status'
