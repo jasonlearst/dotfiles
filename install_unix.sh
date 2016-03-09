@@ -6,7 +6,7 @@
 
 ########## Variables
 cd "$(dirname "$0")"
-DOTFILES_DIR=~$(pwd -P)                     # dotfiles directory
+DOTFILES_DIR=$(pwd -P)                     # dotfiles directory
 olddir=~/.dotfiles_old                    # old dotfiles backup directory
 links="vim bash git"                   # list of files/folders to symlink in homedir
 
@@ -18,8 +18,8 @@ mkdir -p $olddir
 echo "...done"
 
 # change to the dotfiles directory
-echo "Changing to the $dir directory"
-cd $dir
+echo "Changing to the $DOTFILES_DIR directory"
+cd $DOTFILES_DIR
 echo "...done"
 
 # move any existing dotfiles in homedir to dotfiles_old directory
