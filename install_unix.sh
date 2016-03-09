@@ -8,7 +8,7 @@
 cd "$(dirname "$0")"
 DOTFILES_DIR=~$(pwd -P)                     # dotfiles directory
 olddir=~/.dotfiles_old                    # old dotfiles backup directory
-files="vim bash"                   # list of files/folders to symlink in homedir
+links="vim bash git"                   # list of files/folders to symlink in homedir
 
 ##########
 
@@ -22,10 +22,21 @@ echo "Changing to the $dir directory"
 cd $dir
 echo "...done"
 
-# move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks 
+# move any existing dotfiles in homedir to dotfiles_old directory
 echo "Moving any existing dotfiles from ~ to $olddir"
-for file in $files; do
-    mv ~/.$file $olddir
-    echo "Creating symlink to $file in home directory."
-    ln -s $dir/$file ~/.$file
+shopt -s dotglob
+for link in $links; do
+   cd $link
+   for file in *; do
+      if [ -f $file ]; then
+         echo "Moving ~/$file to $olddir"
+         mv ~/$file $olddir
+      fi
+   done
+   cd $DOTFILES_DIR
+done
+
+# use stow to create symlinks to files
+for link in $links; do
+   stow $link
 done
