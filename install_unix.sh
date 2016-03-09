@@ -4,6 +4,14 @@
 # This script creates symlinks from the home directory to any desired dotfiles in ~/.dotfiles
 ############################
 
+# check if stow is installed before beginning
+if stow --version &>/dev/null; then
+   echo "Beginning dotfiles setup..."
+else
+   echo "stow utility not found, please install before beginning"
+   exit 1
+fi
+
 ########## Variables
 cd "$(dirname "$0")"
 DOTFILES_DIR=$(pwd -P)                     # dotfiles directory
@@ -28,7 +36,7 @@ shopt -s dotglob
 for link in $links; do
    cd $link
    for file in *; do
-      if [ -f $file ]; then
+      if [ -f ~/$file ]; then
          echo "Moving ~/$file to $olddir"
          mv ~/$file $olddir
       fi
