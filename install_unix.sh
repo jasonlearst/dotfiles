@@ -16,7 +16,7 @@ fi
 cd "$(dirname "$0")"
 DOTFILES_DIR=$(pwd -P)                     # dotfiles directory
 olddir=~/.dotfiles_old                    # old dotfiles backup directory
-links="vim bash git"                   # list of files/folders to symlink in homedir
+links="vim bash git tmux"                   # list of files/folders to symlink in homedir
 
 ##########
 
