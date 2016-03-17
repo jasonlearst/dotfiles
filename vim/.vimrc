@@ -5,6 +5,16 @@ if has('win32') || has('win64')
 au GUIEnter * simalt ~x
 endif
 
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vim Plug
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call plug#begin()
+Plug 'chazy/cscope_maps'
+Plug 'romainl/Apprentice'
+Plug 'scrooloose/nerdcommenter'
+Plug 'tpope/vim-fugitive'
+call plug#end()
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Look and Feel
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -57,11 +67,9 @@ set clipboard=unnamed
 " minimum lines about or below the curser
 set scrolloff=10
 
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Text Formatting/Layout
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
 " how automatic formatting is to be done
 set formatoptions=tcrqn
 
@@ -106,14 +114,6 @@ set hlsearch
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Key Remappings
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
-" 20090811: No longer used due to supertab plugin
-" turn tab into autocomplete
-"inoremap <Tab> <C-N>
-
-" 20090811: No longer used due to supertab plugin
-" turn shift tab into tab
-"inoremap <S-Tab> <Tab>
-
 " control - hjkl change vim panes
 noremap <C-H> <C-w><C-H>
 noremap <C-J> <C-W><C-J>
@@ -175,51 +175,11 @@ au BufNewFile,BufRead *.A66 setf pic
 " Abbreviations
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Project Plugin
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"let g:proj_flags="nimstTSv"
-"nmap <silent> <F12> <Plug>ToggleProject
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " CScope Rule
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-"set csprg=d:\uti\path_tools\cswrapper.exe
-"
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Omnicompletion and Supertab Settings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Automatically close the preview window after selection
- autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
- autocmd InsertLeave * if pumvisible() == 0|pclose|endif
-
- if v:version >= 600
-  filetype plugin on
-  filetype indent on
-else
-  filetype on
-endif
-
-if v:version >= 700
-  set omnifunc=syntaxcomplete#Complete " override built-in C omnicomplete with C++ OmniCppComplete plugin
-  let OmniCpp_GlobalScopeSearch   = 1
-  let OmniCpp_DisplayMode         = 1
-  let OmniCpp_ShowScopeInAbbr     = 0 "do not show namespace in pop-up
-  let OmniCpp_ShowPrototypeInAbbr = 1 "show prototype in pop-up
-  let OmniCpp_ShowAccess          = 1 "show access in pop-up
-  let OmniCpp_SelectFirstItem     = 1 "select first item in pop-up
-  set completeopt=menuone,menu,longest
-endif
-
-if version >= 700
-  let g:SuperTabDefaultCompletionType = "<C-X><C-O>"
-endif
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Tasklist
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>v <Plug>TaskList
-
 
