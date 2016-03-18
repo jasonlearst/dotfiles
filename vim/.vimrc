@@ -30,8 +30,6 @@ set laststatus=2
 " gotta pick a theme
 color apprentice
 
-au GUIEnter tab ball
-
 " turn on syntax highlighting
 syntax on
 
@@ -43,11 +41,6 @@ set nobackup nowritebackup
 
 " better bracket support
 set showmatch
-
-" tabs and shifs are 2 spaces, no tabs
-set tabstop=3
-set shiftwidth=3
-set expandtab
 
 " better backspacing
 set backspace=indent,eol,start
@@ -106,8 +99,10 @@ set smarttab
 " case insensitive searching unless I add case to search
 set ic
 set smartcase
+
 " turn on incremental search
 set incsearch
+
 " turn on seach highlighting
 set hlsearch
 
@@ -115,7 +110,7 @@ set hlsearch
 " Key Remappings
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " control - hjkl change vim panes
-noremap <C-H> <C-w><C-H>
+noremap <C-H> <C-W><C-H>
 noremap <C-J> <C-W><C-J>
 noremap <C-K> <C-W><C-K>
 noremap <C-L> <C-W><C-L>
@@ -128,7 +123,7 @@ noremap <C-S-Tab> <C-PageUp>
 " noremap tb tab ball<CR>
 
 " set up TagList shortcut key
-nnoremap <silent> <F8> :TlistToggle<CR>
+"nnoremap <silent> <F8> :TlistToggle<CR>
 
 " Leader-d inserts current data
 inoremap <leader>d <C-R>=strftime("%Y-%m-%d")<CR>
@@ -148,9 +143,6 @@ endif
 
 " Set path to StandardECU
 set path=**;d:\usr\usage\delivery\**\**\
-
-" Change path to current buffer directory
-"autocmd BufEnter * cd %:p:h
 
 " Move swap directory to tmp
 if has("win32") || has("win64")
