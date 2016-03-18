@@ -48,3 +48,7 @@ done
 for link in $links; do
    stow $link
 done
+
+# install vim plugins using vim-plug
+echo "Installing vim plugins..."
+vim +PlugInstall +qall
