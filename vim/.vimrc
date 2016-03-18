@@ -28,7 +28,7 @@ set gfn=Inconsolata:h14:cANSI
 set laststatus=2		
 
 " gotta pick a theme
-color apprentice
+silent! color apprentice
 
 " turn on syntax highlighting
 syntax on
