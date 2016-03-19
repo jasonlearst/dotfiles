@@ -13,6 +13,7 @@ Plug 'chazy/cscope_maps'
 Plug 'romainl/Apprentice'
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-fugitive'
+Plug 'christoomey/vim-tmux-navigator'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -172,6 +173,9 @@ au BufNewFile,BufRead *.A66 setf pic
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-" Tasklist
+" Airline
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+" remove separators
+"let g:airline_left_sep=''
+"let g:airline_right_sep=''
 
