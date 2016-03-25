@@ -3,6 +3,18 @@
 # .make.sh
 # This script creates symlinks from the home directory to any desired dotfiles in ~/.dotfiles
 ############################
+# check the platfrom
+platform='unknown'
+unamestr=$(uname)
+if [[ "$unamestr" == "FreeBSD" ]]; then
+   platform='freebsd'
+elif [[ "$unamestr" == "Darwin"* ]]; then
+   platform='osx'
+elif [[ "$unamestr" == "Linux" ]]; then
+   platform='linux'
+elif [[ "$unamestr" == "CYGWIN"* ]]; then
+   platform='cygwin'
+fi
 
 # check if stow is installed before beginning
 if stow --version &>/dev/null; then
@@ -17,6 +29,11 @@ cd "$(dirname "$0")"
 DOTFILES_DIR=$(pwd -P)                     # dotfiles directory
 olddir=~/.dotfiles_old                    # old dotfiles backup directory
 links="vim bash git tmux"                   # list of files/folders to symlink in homedir
+
+# platform dependent links
+if [[ $platform == 'cygwin' ]]; then
+   links+=" mintty"
+fi
 
 ##########
 
