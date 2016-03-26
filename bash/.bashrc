@@ -1,5 +1,10 @@
-bind "set completion-ignore-case on"
-bind "set show-all-if-ambiguous on"
+if [ -t 1 ]
+then
+   # standard output is a tty
+   # do interactive initialization
+   bind "set completion-ignore-case on"
+   bind "set show-all-if-ambiguous on"
+fi
 
 platform='unknown'
 unamestr=$(uname)
