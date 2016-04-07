@@ -1,0 +1,25 @@
+xterm*termName: xterm-256color
+xterm*font: -*-terminus-medium-*-*-*-18-*-*-*-*-*-iso10646-*
+xterm*faceName: Inconsolata:size=10:antialias=false
+xterm*saveLines: 9000
+xterm*selectToClipboard: true
+
+!Color theme settings apprentice
+xterm*foreground: #BCBCBC
+xterm*background: #262626
+xterm*color0:     #1C1C1C
+xterm*color8:     #444444
+xterm*color1:     #AF5F5F
+xterm*color9:     #FF8700
+xterm*color2:     #5F875F
+xterm*color10:    #87AF87
+xterm*color3:     #87875F
+xterm*color11:    #FFFFAF
+xterm*color4:     #5F87AF
+xterm*color12:    #8FAFD7
+xterm*color5:     #5F5F87
+xterm*color13:    #8787AF
+xterm*color6:     #5F8787
+xterm*color14:    #5FAFAF
+xterm*color7:     #6C6C6C
+xterm*color15:    #FFFFFF
