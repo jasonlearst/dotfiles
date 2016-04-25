@@ -19,7 +19,10 @@ elif [[ "$unamestr" == "CYGWIN"* ]]; then
 fi
 
 if [[ $platform == 'linux' ]] || [[ $platform == 'cygwin' ]]; then
-   alias ls='ls --color=auto -Flash'
+   alias ls='ls --color=auto'
+   alias ll='ls --color=auto -Flash'
+   alias la='ls --color=auto -A'
+   alias l='ls --color=auto -FC'
 else
    alias ls="ls -GFlash"
 fi
