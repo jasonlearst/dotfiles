@@ -84,3 +84,7 @@ alias reload='source ~/.bash_profile'
 
 # add android dev tools to PATH
 export PATH="$HOME/Library/Android/sdk/platform-tools/:$PATH"
+
+# set VISUAL variable for visudo and sudoedit
+export VISUAL=vim
+export EDITOR="vi -e"
