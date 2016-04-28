@@ -9,7 +9,8 @@ endif
 " Vim Plug
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 call plug#begin()
-Plug 'chazy/cscope_maps'
+"Plug 'chazy/cscope_maps'
+Plug 'simplyzhao/cscope_maps.vim'
 Plug 'romainl/Apprentice'
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-fugitive'
