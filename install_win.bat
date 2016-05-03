@@ -7,9 +7,9 @@ REM """"""""""""""""""""""""""""
 
 REM """""""" Variables
 
-set dir=%USERPROFILE%\dotfiles
-set olddir=%USERPROFILE%\dotfiles_old
-set files=(vimrc vim)
+set dir=%USERPROFILE%\.dotfiles
+set olddir=%USERPROFILE%\.dotfiles_old
+set files=(.vimrc .vim)
 
 REM """"""""""
 
@@ -26,14 +26,15 @@ echo "...done"
 REM  move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks
 echo "Moving any existing dotfiles from ~/ to %olddir%"
 for %%x in %files% do (
-      move %USERPROFILE%\.%%x %olddir%\
+      move %USERPROFILE%\%%x %olddir%\
       )
+cd vim
 REM symlinks for files
 for %%x in (*) do (
       for %%y in %files% do (
          if %%y == %%x (
             echo "Creating symlink to %%x in home directory."
-            mklink /H %USERPROFILE%\.%%x %dir%\%%x 
+            mklink /H %USERPROFILE%\%%x %dir%\vim\%%x
             )
          )
       )
@@ -42,7 +43,7 @@ for /D %%x in (*) do (
       for %%y in %files% do (
          if %%y == %%x (
             echo "Creating symlink to %%x in home directory."
-            mklink /J %USERPROFILE%\.%%x %dir%\%%x 
+            mklink /J %USERPROFILE%\%%x %dir%\vim\%%x
             )
          )
       )
