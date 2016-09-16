@@ -24,7 +24,9 @@ if [[ $platform == 'linux' ]] || [[ $platform == 'cygwin' ]]; then
    alias la='ls --color=auto -A'
    alias l='ls --color=auto -FC'
 else
-   alias ls="ls -GFlash"
+   alias ls="ls -G"
+   alias ll="ls -GFlash"
+   alias la="ls -Ga"
 fi
 
 ##################
