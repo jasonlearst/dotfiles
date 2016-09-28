@@ -29,7 +29,7 @@ else
    alias la="ls -Ga"
 fi
 
-##################
+###################
 #### MY ALIASES ###
 ###################
 
@@ -45,8 +45,8 @@ alias gpu='git push'
 alias glg='git log --date-order --all --graph --format="%C(green)%h%Creset %C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset%s"'
 alias glg2='git log --date-order --all --graph --name-status --format="%C(green)%H%Creset %C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset%s"'
 
-# ls alias for color-mode
-#alias lh='ls -lhaG'
+#mkdir and cd
+mkdircd() { mkdir "$1" && cd "$1" ; }
 
 # lock computer
 alias lock='/System/Library/CoreServices/"Menu Extras"/User.menu/Contents/Resources/CGSession -suspend'
