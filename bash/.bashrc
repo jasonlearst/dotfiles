@@ -85,7 +85,9 @@ alias ps='ps -ax'
 alias reload='source ~/.bash_profile'
 
 # add android dev tools to PATH
-export PATH="$HOME/Library/Android/sdk/platform-tools/:$PATH"
+if [[ -z $TMUX ]]; then
+   PATH="$HOME/Library/Android/sdk/platform-tools:/usr/local/sbin:$PATH"
+fi
 
 # set VISUAL variable for visudo and sudoedit
 export VISUAL=vim
