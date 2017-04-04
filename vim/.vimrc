@@ -15,6 +15,7 @@ Plug 'romainl/Apprentice'
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-fugitive'
 Plug 'christoomey/vim-tmux-navigator'
+Plug 'abudden/taghighlight-automirror'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
