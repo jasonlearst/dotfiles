@@ -16,6 +16,7 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-fugitive'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'abudden/taghighlight-automirror'
+Plug 'ervandew/supertab'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -62,6 +63,10 @@ set clipboard=unnamed
 
 " minimum lines about or below the curser
 set scrolloff=10
+
+" enable omni compleation
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Text Formatting/Layout
