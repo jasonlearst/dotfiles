@@ -149,9 +149,6 @@ if cscopepath != ''
   silent exe 'cs add' cscopepath
 endif
 
-" Set path to StandardECU
-set path=**;d:\usr\usage\delivery\**\**\
-
 " Move swap directory to tmp
 if has("win32") || has("win64")
    set directory=$TMP
