@@ -17,6 +17,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'abudden/taghighlight-automirror'
 Plug 'ervandew/supertab'
+Plug 'nathanaelkane/vim-indent-guides'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -67,6 +68,13 @@ set scrolloff=10
 " enable omni compleation
 filetype plugin on
 set omnifunc=syntaxcomplete#Complete
+
+" enable indent guides
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_auto_colors=0
+hi IndentGuidesEven ctermbg=238
+hi IndentGuidesOdd ctermbg=236
+let g:indent_guides_soft_pattern = ' '
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Text Formatting/Layout
