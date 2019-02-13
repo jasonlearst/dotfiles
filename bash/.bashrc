@@ -122,4 +122,4 @@ fi
 export VISUAL=vim
 export EDITOR="vi -e"
 
-#[ -e ~/.dircolors ] && eval $(dircolors -b ~/.dircolors) || eval $(dircolors -b)
+[ -e ~/.dircolors ] && eval $(dircolors -b ~/.dircolors) || eval $(dircolors -b)
