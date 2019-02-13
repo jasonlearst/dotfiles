@@ -28,12 +28,15 @@ case "$TERM" in
    xterm-color|*-256color) color_prompt=yes;;
 esac
 
+#source /usr/lib/git-core/git-sh-prompt
 if [ "$color_prompt" = yes ]; then
    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
+
+#export PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u:\[\033[01;34m\]\w\[\033[00m\]\$(__git_ps1)\[\033[00m\] $ "
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
@@ -118,3 +121,5 @@ fi
 # set VISUAL variable for visudo and sudoedit
 export VISUAL=vim
 export EDITOR="vi -e"
+
+#[ -e ~/.dircolors ] && eval $(dircolors -b ~/.dircolors) || eval $(dircolors -b)
