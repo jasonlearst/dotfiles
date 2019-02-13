@@ -28,15 +28,16 @@ case "$TERM" in
    xterm-color|*-256color) color_prompt=yes;;
 esac
 
-#source /usr/lib/git-core/git-sh-prompt
+# import git prompt
+export GIT_PS1_SHOWDIRTYSTATE=yes
+source /usr/lib/git-core/git-sh-prompt
+
 if [ "$color_prompt" = yes ]; then
-   PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+   PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$(__git_ps1)\[\033[00m\]$ "
 else
-   PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+   PS1="${debian_chroot:+($debian_chroot)}\u@\h:\w\$(__git_ps1)\$ "
 fi
 unset color_prompt force_color_prompt
-
-#export PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u:\[\033[01;34m\]\w\[\033[00m\]\$(__git_ps1)\[\033[00m\] $ "
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
