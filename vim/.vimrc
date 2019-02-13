@@ -18,6 +18,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'abudden/taghighlight-automirror'
 Plug 'ervandew/supertab'
 Plug 'nathanaelkane/vim-indent-guides'
+Plug 'ludovicchabant/vim-gutentags'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
