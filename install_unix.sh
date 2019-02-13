@@ -10,7 +10,7 @@
 cd "$(dirname "$0")"
 DOTFILES_DIR=$(pwd -P)                    # dotfiles directory
 olddir=~/.dotfiles_old                    # old dotfiles backup directory
-links="vim bash git tmux xterm"           # list of files/folders to symlink in homedir
+links="vim bash git tmux xterm dircolors"           # list of files/folders to symlink in homedir
 
 # check the platfrom
 platform='unknown'
