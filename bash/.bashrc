@@ -123,4 +123,14 @@ fi
 export VISUAL=vim
 export EDITOR="vi -e"
 
+# enable bash completion and tab cycle
+if [ -f /etc/bash_completion ]; then
+   . /etc/bash_completion
+   set show-all-if-ambiguous on
+   set show-all-if-unmodified on
+   set menu-complete-display-prefix on
+   bind '"\t": menu-complete'
+   bind '"\e[Z": menu-complete-backward'
+fi
+
 [ -e ~/.dircolors ] && eval $(dircolors -b ~/.dircolors) || eval $(dircolors -b)
