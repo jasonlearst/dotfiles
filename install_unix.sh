@@ -135,7 +135,7 @@ update_vim_plugins () {
 
 install_menu () {
    PS3='Please enter your choice: '
-   options=("Install" "Update" "Uninstall" "Quit")
+   #options=("Install" "Update" "Uninstall" "Quit")
    select opt in "${options[@]}"
    do
       case $opt in
@@ -170,7 +170,48 @@ install_menu () {
    done
 }
 
+new_install_menu () {
+   cmd=(whiptail --separate-output --title "Dotfiles Installer" --checklist "Select Configurations:" 22 76 16)
+   options=(1 "git" on 
+   2 "tmux" on
+   3 "mintty" off
+   4 "vim" on
+   5 "bash" on
+   6 "dircolors" on
+   7 "xterm" off)
+   choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+   for choice in $choices
+      do
+      case $choice in
+         1)
+            echo "git"
+            ;;
+         2)
+            echo "tmux"
+            ;;
+         3)
+            echo "mintty"
+            ;;
+         4) 
+            echo "vim"
+            ;;
+         5)
+            echo "bash"
+            ;;
+         6)
+            echo "dircolors"
+            ;;
+         7)
+            echo "xterm"
+            ;;
+         *)
+            echo "catch"
+            ;;
+      esac
+   done
+}
+
 ############################
 # Main script
 ############################
-install_menu
+new_install_menu
