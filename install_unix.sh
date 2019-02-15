@@ -211,7 +211,13 @@ new_install_menu () {
    done
 }
 
+get_stowed_folders () {
+   folders=$(ls -d -- */ | sed 's#/##')
+   echo $folders
+}
+
 ############################
 # Main script
 ############################
 new_install_menu
+get_stowed_folders
