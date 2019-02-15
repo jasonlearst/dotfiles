@@ -19,6 +19,7 @@ Plug 'abudden/taghighlight-automirror'
 Plug 'ervandew/supertab'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'ludovicchabant/vim-gutentags'
+Plug 'freitass/todo.txt-vim'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -180,6 +181,11 @@ au BufNewFile,BufRead *.A66 setf pic
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Abbreviations
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Save with Sudo
+if has("win32") || has("win64")
+else
+   cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
+end 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " CScope Rule
