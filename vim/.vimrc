@@ -20,6 +20,11 @@ Plug 'ervandew/supertab'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'ludovicchabant/vim-gutentags'
 Plug 'freitass/todo.txt-vim'
+Plug 'morhetz/gruvbox'
+Plug 'nanotech/jellybeans.vim'
+Plug 'sjl/badwolf'
+Plug 'altercation/vim-colors-solarized'
+Plug 'sunuslee/vim-plugin-random-colorscheme-picker'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
