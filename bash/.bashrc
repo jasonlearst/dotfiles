@@ -30,7 +30,12 @@ esac
 
 # import git prompt
 export GIT_PS1_SHOWDIRTYSTATE=yes
-source /usr/lib/git-core/git-sh-prompt
+if [[ $platform == 'osx' ]]; then
+   [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
+else
+   source /usr/lib/git-core/git-sh-prompt
+fi
+
 
 if [ "$color_prompt" = yes ]; then
    PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$(__git_ps1)\[\033[00m\]$ "
@@ -133,4 +138,6 @@ if [ -f /etc/bash_completion ]; then
    bind '"\e[Z": menu-complete-backward'
 fi
 
-[ -e ~/.dircolors ] && eval $(dircolors -b ~/.dircolors) || eval $(dircolors -b)
+if [[ $platform == 'linux' ]]; then
+   [ -e ~/.dircolors ] && eval $(dircolors -b ~/.dircolors) || eval $(dircolors -b)
+fi
