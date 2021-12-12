@@ -24,7 +24,7 @@ Plug 'morhetz/gruvbox'
 Plug 'nanotech/jellybeans.vim'
 Plug 'sjl/badwolf'
 Plug 'altercation/vim-colors-solarized'
-Plug 'sunuslee/vim-plugin-random-colorscheme-picker'
+"Plug 'sunuslee/vim-plugin-random-colorscheme-picker'
 Plug 'flazz/vim-colorschemes'
 call plug#end()
 
