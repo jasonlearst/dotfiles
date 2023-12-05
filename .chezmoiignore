@@ -1,0 +1,3 @@
+README.md
+
+*.txt   # ignore *.txt in the target directory
