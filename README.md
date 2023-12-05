@@ -4,13 +4,9 @@ These are my personal dotfiles.  I use these over multiple platforms and machine
 
 ## Installation
 
-### The Windows install_win.bat script is broken!
+The below command installs chezmoi and initilizes the dotfiles.  See: [chezmoi One-line binary install](https://www.chezmoi.io/install/#one-line-binary-install) for more information.
 
-I have tested the installation on my computers only.  There are no guarantees that this will work on your system.
-
-1. `git clone https://github.com/bigjay517/dotfiles.git ~/.dotfiles`
-2. `cd ~/.dotfiles`
-3. `./install_unix.sh`
+`sh -c "$(curl -fsLS get.chezmoi.io/lb)" -- init --apply git@github.com:jasonlearst/dotfiles.git`
 
 ## Usage
 
@@ -33,7 +29,7 @@ TODO: Write history
 ## Credits
 
 [http://dotfiles.github.io/](http://dotfiles.github.io/)  
-Local Git Config [https://github.com/holman/dotfiles](https://github.com/holman/dotfiles)
+[chezmoi Dotfiles Manager](https://www.chezmoi.io/)
 
 ## License
 
