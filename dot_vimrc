@@ -25,23 +25,24 @@ call plug#end()
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Look and Feel
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
-" turn off the vi compatabilty mode
+" turn off the vi compatibility mode
 set nocompatible
 
-" set up the font I want
-set gfn=Inconsolata:h14:cANSI
+" set up the font for GUI
+if has('gui_running')
+  set guifont=Inconsolata:h14
+  " get rid of the toolbar..useless
+  set guioptions-=T
+endif
 
 " doublewide command line
-set laststatus=2		
+set laststatus=2        
 
 " gotta pick a theme
 silent! color apprentice
 
 " turn on syntax highlighting
 syntax on
-
-" get rid of the toolbar..useless
-set guioptions-=T
 
 " no annoying backups
 set nobackup nowritebackup
@@ -56,18 +57,18 @@ set backspace=indent,eol,start
 set shortmess=atI
 
 " show relative line numbering
-set rnu 
+set relativenumber
 
 " When nonempty, this option determines the content of the status line
 set statusline=%F%m%r%h%w\ [TYPE=%Y]\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
 
-" share windows clipboard
+" share system clipboard
 set clipboard=unnamed
 
-" minimum lines about or below the curser
+" minimum lines about or below the cursor
 set scrolloff=10
 
-" enable omni compleation
+" enable omni completion
 filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
@@ -110,18 +111,18 @@ set nowrap
 
 " use tabs at the start of a line, spaces elsewhere
 set smarttab
- 
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Searching
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " case insensitive searching unless I add case to search
-set ic
+set ignorecase
 set smartcase
 
 " turn on incremental search
 set incsearch
 
-" turn on seach highlighting
+" turn on search highlighting
 set hlsearch
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -137,34 +138,15 @@ noremap <C-L> <C-W><C-L>
 noremap <C-Tab> <C-PageDown> 
 noremap <C-S-Tab> <C-PageUp> 
 
-" create shortcut for opening in tabs
-" noremap tb tab ball<CR>
-
-" set up TagList shortcut key
-"nnoremap <silent> <F8> :TlistToggle<CR>
-
-" Leader-d inserts current data
+" Leader-d inserts current date
 inoremap <leader>d <C-R>=strftime("%Y-%m-%d")<CR>
 inoremap <leader>f <C-R>=strftime("%H:%M:%S")<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Path rules
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Find tags file
-set tags=tags;d:\usr\distrib\
-
-" Find cscope database
-let cscopepath=findfile("cscope.out",".;")
-if cscopepath != ''
-  silent exe 'cs add' cscopepath
-endif
-
 " Move swap directory to tmp
-if has("win32") || has("win64")
-   set directory=$TMP
-else
-   set directory=/tmp
-end 
+set directory=/tmp
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Syntax Rules
@@ -182,18 +164,4 @@ au BufNewFile,BufRead *.A66 setf pic
 " Abbreviations
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Save with Sudo
-if has("win32") || has("win64")
-else
-   cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
-end 
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" CScope Rule
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Airline
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" remove separators
-"let g:airline_left_sep=''
-"let g:airline_right_sep=''
+cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
