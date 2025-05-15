@@ -8,6 +8,9 @@ The below command installs chezmoi and initilizes the dotfiles.  See: [chezmoi O
 
 `sh -c "$(curl -fsLS get.chezmoi.io/lb)" -- init --apply git@github.com:jasonlearst/dotfiles.git`
 
+Run `tmux` and install plugins with `prefix + I` (capital i, as in in Install)
+Run `nvim` and install plugins with `:Lazy sync`
+
 ## Usage
 
 Use the dotfiles!
