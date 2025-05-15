@@ -10,6 +10,7 @@ The below command installs chezmoi and initilizes the dotfiles.  See: [chezmoi O
 
 Run `tmux` and install plugins with `prefix + I` (capital i, as in in Install)
 Run `nvim` and install plugins with `:Lazy sync`
+Run `vim` and install plugins with `:PlugInstall`
 
 ## Usage
 
