@@ -20,6 +20,8 @@ Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'altercation/vim-colors-solarized'
 "Plug 'sunuslee/vim-plugin-random-colorscheme-picker'
 "Plug 'flazz/vim-colorschemes'
+Plug 'loctvl842/monokai-pro.nvim'
+Plug 'sheerun/vim-polyglot'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -39,7 +41,7 @@ endif
 set laststatus=2        
 
 " gotta pick a theme
-silent! color apprentice
+silent! colorscheme monokai-pro
 
 " turn on syntax highlighting
 syntax on
