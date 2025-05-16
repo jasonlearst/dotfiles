@@ -1,0 +1,6 @@
+{{- if eq .chezmoi.hostname "work-laptop" }}
+{{- else }}
+[[ssh-keys]]
+item = "Personal SSH Key"
+vault = "Personal"
+{{ end }}
