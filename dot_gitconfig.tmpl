@@ -7,6 +7,10 @@
 	autocrlf = input
 [diff]
 	tool = bc
+[merge]
+	tool = bc
+[mergetool "bc"]
+	trustExitCode = true
 {{ end }}
 {{ if eq .chezmoi.os "linux" }}
 	autocrlf = input
