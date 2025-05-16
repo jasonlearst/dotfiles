@@ -2,10 +2,6 @@
     type = "git-repo"
     url = "https://github.com/tmux-plugins/tpm"
     refreshPeriod = "168h"
-[".config/nvim"]
-    type = "git-repo"
-    url = "https://github.com/NvChad/NvChad"
-    refreshPeriod = "168h"
 [".vim/autoload/plug.vim"]
     type = "file"
     url = "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
