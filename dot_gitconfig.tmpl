@@ -1,9 +1,23 @@
-{{ if eq .chezmoi.os "linux" }}
-{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
-[core]
-	sshCommand = ssh.exe
-{{   end }}
-{{ end }}
 [user]
 	name = {{ .user }}
 	email = {{ .email }}
+[core]
+{{ if eq .chezmoi.os "darwin" }}
+	excludesfile = /Users/jason/.gitignore_global
+	autocrlf = input
+[diff]
+	tool = bc
+{{ end }}
+{{ if eq .chezmoi.os "linux" }}
+	autocrlf = input
+{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+	sshCommand = ssh.exe
+{{   end }}
+{{ end }}
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
