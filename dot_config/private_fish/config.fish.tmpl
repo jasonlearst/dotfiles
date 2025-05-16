@@ -1,0 +1,17 @@
+if status is-interactive
+    # Commands to run in interactive sessions can go here
+    # fish
+    fzf --fish | source
+    jump shell fish | source
+end
+
+# Set TERM to xterm-256color when using Ghostty
+if test "$TERM_PROGRAM" = "ghostty"
+    set -gx TERM xterm-256color
+end
+{{- if eq .chezmoi.os "darwin" }}
+# Created by `pipx` on 2025-03-15 18:45:35
+set PATH $PATH /Users/jason/.local/bin
+
+test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish
+{{ end }}
