@@ -16,6 +16,15 @@
 	autocrlf = input
 {{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
 	sshCommand = ssh.exe
+[diff]
+	tool = bc
+[merge]
+	tool = bc
+[mergetool "bc"]
+	trustExitCode = true
+	cmd = '/mnt/c/Program Files/Beyond Compare 4/BComp.exe' \"$(wslpath -aw $LOCAL)\" \"$(wslpath -aw $REMOTE)\" \"$(wslpath -aw $BASE)\" \"$(wslpath -aw $MERGED)\"
+[difftool "bc"]
+	cmd = '/mnt/c/Program Files/Beyond Compare 4/BComp.exe' \"$(wslpath -aw $LOCAL)\" \"$(wslpath -aw $REMOTE)\"
 {{   end }}
 {{ end }}
 [init]
