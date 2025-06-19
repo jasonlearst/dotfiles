@@ -6,3 +6,19 @@
     type = "file"
     url = "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
     refreshPeriod = "168h"
+{{- if eq .chezmoi.os "linux" }}
+[".local/bin/eza"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "eza-community/eza" "eza_x86_64-unknown-linux-gnu.tar.gz" | quote }}
+    executable = true
+    path = "./eza"
+[".local/bin/zellij"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "zellij-org/zellij" "zellij-x86_64-unknown-linux-musl.tar.gz" | quote }}
+    executable = true
+    path = "zellij"
+[".local/bin/jump"]
+   type = "file"
+   url = {{ gitHubLatestReleaseAssetURL "gsamokovarov/jump" "jump_linux_amd64_binary" | quote }}
+   executable = true
+{{- end -}}
