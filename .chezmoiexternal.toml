@@ -26,4 +26,9 @@
     url = {{ gitHubLatestReleaseAssetURL "junegunn/fzf" (printf "fzf-*-%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
     executable = true
     path = "fzf"
+[".local/bin/jj"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "jj-vcs/jj" (printf "jj-*-x86_64-unknown-%s-musl.tar.gz" .chezmoi.os) | quote }}
+    executable = true
+    path = "./jj"
 {{- end -}}
