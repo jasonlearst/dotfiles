@@ -1,3 +1,7 @@
 README.md
 
 *.txt   # ignore *.txt in the target directory
+
+{{- if not (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+.bash_profile
+{{- end }}
