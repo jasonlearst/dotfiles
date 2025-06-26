@@ -1,0 +1,15 @@
+# ~/.bash_profile
+# Source .profile for PATH and environment
+if [ -f ~/.profile ]; then
+    . ~/.profile
+fi
+
+# Source .bashrc for interactive features
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+
+# Now exec fish for interactive sessions
+if [[ $- == *i* ]]; then
+    exec fish
+fi
