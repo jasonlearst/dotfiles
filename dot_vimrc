@@ -5,7 +5,7 @@ call plug#begin()
 "Plug 'chazy/cscope_maps'
 "Plug 'simplyzhao/cscope_maps.vim'
 Plug 'romainl/Apprentice'
-"Plug 'scrooloose/nerdcommenter'
+Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive'
 Plug 'christoomey/vim-tmux-navigator'
@@ -22,6 +22,7 @@ Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'flazz/vim-colorschemes'
 Plug 'loctvl842/monokai-pro.nvim'
 Plug 'sheerun/vim-polyglot'
+Plug 'arcticicestudio/nord-vim'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -41,7 +42,7 @@ endif
 set laststatus=2        
 
 " gotta pick a theme
-silent! colorscheme monokai-pro
+silent! colorscheme nord
 
 " turn on syntax highlighting
 syntax on
