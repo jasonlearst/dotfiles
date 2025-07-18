@@ -1,7 +1,13 @@
 README.md
 
 *.txt   # ignore *.txt in the target directory
-
-{{- if not (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+{{- if eq .chezmoi.os "linux" }}
+{{-   if not (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
 .bash_profile
+{{-   end }}
 {{- end }}
+
+{{ if ne .chezmoi.os "darwin" }}
+.config/fish/functions/tailscale.fish
+.config/fish/compleations/tailscale.fish
+{{ end }}
