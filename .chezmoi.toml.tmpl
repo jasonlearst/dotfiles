@@ -4,7 +4,7 @@
 [data]
     email = {{ $email | quote }}
     user = {{ $user | quote }}
-{{ if (or (.chezmoi.kernel.osrelease | lower | contains "microsoft") (eq .chezmoi.os "darwin") ) }}
+{{ if (or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin")) }}
 [edit]
     command = "code"
     args = ["--wait"]
