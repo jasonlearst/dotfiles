@@ -19,7 +19,7 @@
     path = "zellij"
 [".local/bin/jump"]
    type = "file"
-   url = {{ gitHubLatestReleaseAssetURL "gsamokovarov/jump" "jump_linux_amd64_binary" | quote }}
+   url = {{ gitHubLatestReleaseAssetURL "gsamokovarov/jump" (printf "jump_%s_%s_binary" .chezmoi.os .chezmoi.arch) | quote }}
    executable = true
 [".local/bin/fzf"]
     type = "archive-file"
