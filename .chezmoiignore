@@ -1,6 +1,8 @@
 README.md
 
 *.txt
+
+.config/fish/fish_variables
 {{- if eq .chezmoi.os "linux" }}
 {{-   if not (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
 .bash_profile
