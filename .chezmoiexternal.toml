@@ -31,4 +31,14 @@
     url = {{ gitHubLatestReleaseAssetURL "jj-vcs/jj" (printf "jj-*-x86_64-unknown-%s-musl.tar.gz" .chezmoi.os) | quote }}
     executable = true
     path = "./jj"
+[".local/bin/mcfly"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "cantino/mcfly" (printf "mcfly-*-x86_64-unknown-%s-musl.tar.gz" .chezmoi.os) | quote }}
+    executable = true
+    path = "mcfly"
+[".local/bin/tere"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "mgunyho/tere" (printf "tere-*-x86_64-unknown-%s-musl.zip" .chezmoi.os) | quote }}
+    executable = true
+    path = "tere"
 {{- end -}}
