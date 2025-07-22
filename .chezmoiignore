@@ -8,6 +8,9 @@ README.md
 {{- end }}
 
 {{ if ne .chezmoi.os "darwin" }}
+.chezmoiscripts/darwin/**
+.config/homebrew
 .config/fish/functions/tailscale.fish
 .config/fish/compleations/tailscale.fish
+.Brewfile
 {{ end }}
