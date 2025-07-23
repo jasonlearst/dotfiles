@@ -1,20 +1,30 @@
+if ! contains $HOME/.local/bin $PATH && ! contains $HOME/.local/bin $fish_user_paths
+    fish_add_path --path $HOME/.local/bin
+end
+
 if status is-interactive
     # Commands to run in interactive sessions can go here
     # fish
-    fzf --fish | source
-    jump shell fish | source
-    jj util completion fish | source
-    mcfly init fish | source
-    zoxide init fish | source
+    if command --query fzf
+        fzf --fish | source
+    end
+    if command --query jump
+        jump shell fish | source
+    end
+    if command --query jj
+        jj util completion fish | source
+    end
+    if command --query mcfly
+        mcfly init fish | source
+    end
+    if command --query zoxide
+        zoxide init fish | source
+    end
 end
 
 # Set TERM to xterm-256color when using Ghostty
 if test "$TERM_PROGRAM" = "ghostty"
     set -gx TERM xterm-256color
-end
-
-if ! contains $HOME/.local/bin $PATH && ! contains $HOME/.local/bin $fish_user_paths
-    fish_add_path --path $HOME/.local/bin
 end
 
 {{- if eq .chezmoi.os "darwin" }}
