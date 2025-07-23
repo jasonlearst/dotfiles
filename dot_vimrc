@@ -5,7 +5,7 @@ call plug#begin()
 "Plug 'chazy/cscope_maps'
 "Plug 'simplyzhao/cscope_maps.vim'
 Plug 'romainl/Apprentice'
-Plug 'scrooloose/nerdcommenter'
+" Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-fugitive'
 Plug 'christoomey/vim-tmux-navigator'
@@ -22,7 +22,9 @@ Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'flazz/vim-colorschemes'
 Plug 'loctvl842/monokai-pro.nvim'
 Plug 'sheerun/vim-polyglot'
-Plug 'arcticicestudio/nord-vim'
+"Plug 'arcticicestudio/nord-vim'
+" Use fork until colors are fixed: https://github.com/nordtheme/vim/pull/350
+Plug 'MitchiLaser/fork-nord-vim'
 call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
