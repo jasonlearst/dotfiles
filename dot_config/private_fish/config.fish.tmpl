@@ -12,7 +12,10 @@ if status is-interactive
         jump shell fish | source
     end
     if command --query jj
-        jj util completion fish | source
+        if test (printf '%s\n4.0.2\n%s' $FISH_VERSION $FISH_VERSION | sort -V | head -n1) = $FISH_VERSION
+            and test $FISH_VERSION != "4.0.2"
+            COMPLETE=fish jj | source
+        end
     end
     if command --query mcfly
         mcfly init fish | source
