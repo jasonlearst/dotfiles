@@ -1,0 +1,14 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[user]
+name = {{ .user }}
+email = {{ .email }}
+
+[ui]
+editor = "vim"
+merge-editor = "bc"
+
+[merge-tools.bc]
+program = "bcomp"
+edit-args = ["$left", "$right", "-ro1", "-expandall"]
+merge-args = ["$left", "$right", "$base", "$output", "-automerge", "-reviewconflicts"]
