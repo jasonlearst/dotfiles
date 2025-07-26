@@ -1,8 +1,8 @@
 "$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
 
 [user]
-name = {{ .user }}
-email = {{ .email }}
+name = {{ .user | quote }}
+email = {{ .email | quote }}
 
 [ui]
 editor = "vim"
