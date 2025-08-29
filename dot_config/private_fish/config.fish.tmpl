@@ -23,6 +23,9 @@ if status is-interactive
     if command --query zoxide
         zoxide init fish | source
     end
+    if test -f ~/.dir_colors
+        eval (dircolors -c ~/.dir_colors)
+    end
 end
 
 # Set TERM to xterm-256color when using Ghostty
