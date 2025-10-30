@@ -29,6 +29,8 @@ if status is-interactive
     if command --query direnv
         direnv hook fish | source
     end
+    # enable vi mode
+    set -g fish_key_bindings fish_vi_key_bindings
 end
 
 # Set TERM to xterm-256color when using Ghostty
