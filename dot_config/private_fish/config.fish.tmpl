@@ -26,6 +26,9 @@ if status is-interactive
     if test -f ~/.dir_colors
         eval (dircolors -c ~/.dir_colors)
     end
+    if command --query direnv
+        direnv hook fish | source
+    end
 end
 
 # Set TERM to xterm-256color when using Ghostty

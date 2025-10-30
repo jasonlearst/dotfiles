@@ -7,8 +7,10 @@ email = {{ .email | quote }}
 [ui]
 editor = "vim"
 merge-editor = "bc"
+diff-formatter = "bcomp"
 
 [merge-tools.bc]
 program = "bcomp"
 edit-args = ["$left", "$right", "-ro1", "-expandall"]
 merge-args = ["$left", "$right", "$base", "$output", "-automerge", "-reviewconflicts"]
+diff-args = ["$left", "$right"]
