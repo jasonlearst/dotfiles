@@ -48,7 +48,21 @@ function fish_prompt --description 'Write out the prompt'
         set_color $color_cwd
         echo -n (prompt_pwd)
         set_color normal
-    
+
+        # Python virtual environment indicator
+        if set -q VIRTUAL_ENV
+                set_color yellow
+                echo -n " (venv:"(basename $VIRTUAL_ENV)")"
+                set_color normal
+        end
+
+        # direnv indicator
+        if set -q DIRENV_DIR
+                set_color cyan
+                echo -n " [direnv]"
+                set_color normal
+        end
+
         printf '%s ' (fish_vcs_prompt)
     
         set -l status_color (set_color $fish_color_status)
