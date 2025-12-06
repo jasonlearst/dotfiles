@@ -24,7 +24,11 @@ if status is-interactive
         zoxide init fish | source
     end
     if test -f ~/.dir_colors
-        eval (dircolors -c ~/.dir_colors)
+        if command --query gdircolors
+            eval (gdircolors -c ~/.dir_colors)
+        else if command --query dircolors
+            eval (dircolors -c ~/.dir_colors)
+        end
     end
     if command --query direnv
         direnv hook fish | source
