@@ -44,4 +44,5 @@ end
 
 {{- if eq .chezmoi.os "darwin" }}
 test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish
+set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
 {{ end }}
