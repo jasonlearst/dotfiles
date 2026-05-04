@@ -2,20 +2,20 @@
 	name = {{ .user }}
 	email = {{ .email }}
 [core]
-{{ if eq .chezmoi.os "darwin" }}
-	excludesfile = /Users/jason/.gitignore_global
+	excludesfile = {{ .chezmoi.homeDir }}/.gitignore_global
 	autocrlf = input
+{{- if .isWSL }}
+	sshCommand = ssh.exe
+{{- end }}
+{{- if eq .chezmoi.os "darwin" }}
 [diff]
 	tool = bc
 [merge]
 	tool = bc
 [mergetool "bc"]
 	trustExitCode = true
-{{ end }}
-{{ if eq .chezmoi.os "linux" }}
-	autocrlf = input
-{{   if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
-	sshCommand = ssh.exe
+{{- end }}
+{{- if .isWSL }}
 [diff]
 	tool = bc
 [merge]
@@ -25,8 +25,7 @@
 	cmd = '/mnt/c/Program Files/Beyond Compare 4/BComp.exe' \"$(wslpath -aw $LOCAL)\" \"$(wslpath -aw $REMOTE)\" \"$(wslpath -aw $BASE)\" \"$(wslpath -aw $MERGED)\"
 [difftool "bc"]
 	cmd = '/mnt/c/Program Files/Beyond Compare 4/BComp.exe' \"$(wslpath -aw $LOCAL)\" \"$(wslpath -aw $REMOTE)\"
-{{   end }}
-{{ end }}
+{{- end }}
 [init]
 	defaultBranch = main
 [filter "lfs"]

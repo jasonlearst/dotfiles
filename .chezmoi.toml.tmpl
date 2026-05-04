@@ -1,9 +1,23 @@
-{{ $email := promptStringOnce . "email" "What is your git email address" -}}
-{{ $user := promptStringOnce . "user" "What is your git username" -}}
+{{- $email := promptStringOnce . "email" "What is your git email address" -}}
+{{- $user := promptStringOnce . "user" "What is your git username" -}}
+{{- $isWork := promptBoolOnce . "isWork" "Is this a work machine?" -}}
+
+{{- /*
+  isWSL: derived from kernel.osrelease. Stored once at init time. If you ever
+  WSL-ify a non-WSL Linux box (or vice-versa), re-run `chezmoi init` to refresh.
+*/ -}}
+{{- $isWSL := false -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   if (.chezmoi.kernel.osrelease | default "" | lower | contains "microsoft") -}}
+{{-     $isWSL = true -}}
+{{-   end -}}
+{{- end -}}
 
 [data]
     email = {{ $email | quote }}
     user = {{ $user | quote }}
+    isWork = {{ $isWork }}
+    isWSL = {{ $isWSL }}
 {{ if (or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin")) }}
 [edit]
     command = "code"

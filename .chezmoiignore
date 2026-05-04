@@ -3,10 +3,8 @@ README.md
 *.txt
 
 .config/fish/fish_variables
-{{- if eq .chezmoi.os "linux" }}
-{{-   if not (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+{{- if and (eq .chezmoi.os "linux") (not .isWSL) }}
 .bash_profile
-{{-   end }}
 {{- end }}
 
 {{ if ne .chezmoi.os "darwin" }}
