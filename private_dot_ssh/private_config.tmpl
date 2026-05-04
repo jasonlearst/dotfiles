@@ -1,0 +1,42 @@
+{{- /*
+  ~/.ssh/config — personal infrastructure host aliases. IdentityAgent points
+  at the 1Password SSH agent socket; on hosts without 1Password installed
+  (e.g. remote SSH servers) ssh falls through to other auth methods. The
+  github.com personal-key block is gated on .isWork so work machines don't
+  try to use the personal key.
+*/ -}}
+Include ~/.colima/ssh_config
+
+Host jason-um700.learst.net
+  HostName jason-um700.learst.net
+  User jason
+  IdentityAgent ~/.1password/agent.sock
+  ForwardAgent yes
+
+Host 192.168.171.20
+  HostName 192.168.171.20
+
+Host 50.116.48.155
+  HostName 50.116.48.155
+
+Host apps1.lan.bigjay517.com
+  HostName apps1.lan.bigjay517.com
+  User pi
+
+Host github.com
+{{- if not .isWork }}
+  IdentityFile ~/.ssh/personal-ssh-key.pub
+  IdentitiesOnly yes
+{{- end }}
+
+Host *
+  IdentityAgent ~/.1password/agent.sock
+
+Host nixos.learst.net
+  ForwardAgent yes
+
+Host *.learst.net
+  ForwardAgent yes
+
+Host *.banded-delta.ts.net
+  ForwardAgent yes
