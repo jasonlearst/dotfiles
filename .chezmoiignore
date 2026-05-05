@@ -16,3 +16,7 @@ IMPROVEMENTS.md
 .Brewfile
 .1password/**
 {{ end }}
+
+{{ if ne .chezmoi.os "linux" }}
+.chezmoiscripts/linux/**
+{{ end }}

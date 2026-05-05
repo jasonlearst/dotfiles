@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# Install package-manager-provided tools needed by managed dotfiles.
+# Runs BEFORE config files are placed (run_onchange_before_*) so e.g.
+# fish exists before its config lands in ~/.config/fish.
+# Re-runs only when this script's content changes (run_onchange_).
+#
+# Currently handles Debian/Ubuntu (apt). Extend the case statement when
+# adding other distros.
+#
+# Skipped on tools already provided as binaries by chezmoi externals
+# (eza, zellij, jump, fzf, jj, mcfly, tere) to avoid PATH conflicts.
+
+set -eufo pipefail
+
+PACKAGES=(
+    fish tmux vim
+    bat ripgrep fd-find
+    direnv jq htop
+)
+
+case "{{ .chezmoi.osRelease.id | default "" }}|{{ .chezmoi.osRelease.idLike | default "" }}" in
+    *ubuntu*|*debian*)
+        echo "Installing packages via apt-get (sudo prompt may follow)..."
+        sudo apt-get update -qq
+        sudo apt-get install -y "${PACKAGES[@]}"
+
+        # Ubuntu/Debian ship `bat` as `batcat` and `fd-find` as `fdfind`
+        # to avoid name conflicts. Symlink the canonical names into
+        # ~/.local/bin so config that calls `bat`/`fd` works.
+        mkdir -p "$HOME/.local/bin"
+        for pair in "batcat:bat" "fdfind:fd"; do
+            src="${pair%%:*}"
+            dst="${pair##*:}"
+            if command -v "$src" >/dev/null 2>&1 && [ ! -e "$HOME/.local/bin/$dst" ]; then
+                ln -sf "$(command -v "$src")" "$HOME/.local/bin/$dst"
+            fi
+        done
+        ;;
+    *)
+        echo "Distro '{{ .chezmoi.osRelease.id | default "unknown" }}' not yet handled; skipping."
+        echo "Install manually: ${PACKAGES[*]}"
+        ;;
+esac

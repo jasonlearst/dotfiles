@@ -20,14 +20,13 @@ PowerShell / native Windows tooling has nothing.
 - Branch `[edit]` in `.chezmoi.toml.tmpl` for `code.cmd` on Windows
 - gitconfig: `autocrlf = true` on Windows (currently `input` everywhere)
 
-### [ ] Linux distro detection / package install
-**Why:** On Linux, chezmoi externals download `eza/zellij/jj/mcfly/tere`, but
-`fish`, `bat`, `ripgrep`, `fd`, `direnv`, `git`, `tmux` are assumed present.
-**Approach:**
-- `.chezmoiscripts/linux/run_onchange_before_install-packages.sh.tmpl`
-- Branch on `.chezmoi.osRelease.id` (ubuntu/debian/fedora/arch) and
-  `.idLike`, then call `apt-get`/`dnf`/`pacman`
-- Long-term: install Homebrew on Linux + share a CLI-only Brewfile
+### [ ] Linux distro support: Fedora / Arch / openSUSE
+**Why:** Debian/Ubuntu (apt) is now handled by
+`.chezmoiscripts/linux/run_onchange_before_install-packages.sh.tmpl`.
+Other distros currently print a "skipping" notice.
+**Approach:** Extend the `case` in the same script with `dnf` / `pacman` /
+`zypper` branches. Package names will differ (e.g. `fd` vs `fd-find`,
+`bat` vs `batcat`).
 
 ### [ ] Split Brewfile into common / darwin / work
 **Why:** `dot_Brewfile` mixes CLI tools (portable) with macOS casks. Hard to
@@ -195,3 +194,6 @@ template's rendered output. To migrate safely:
 - ~~Track `~/.profile`~~ — added portable `dot_profile`: conditional
   `~/bin` + `~/.local/bin`, guarded cargo env, bashrc source for
   interactive bash, `~/.profile.local` fall-through
+- ~~Linux package install for Debian/Ubuntu~~ — added
+  `.chezmoiscripts/linux/run_onchange_before_install-packages.sh.tmpl`
+  (apt). Other distros remain open (see top section)
