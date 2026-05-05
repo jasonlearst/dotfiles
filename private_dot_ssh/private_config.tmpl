@@ -1,16 +1,26 @@
 {{- /*
-  ~/.ssh/config — personal infrastructure host aliases. IdentityAgent points
-  at the 1Password SSH agent socket; on hosts without 1Password installed
-  (e.g. remote SSH servers) ssh falls through to other auth methods. The
-  github.com personal-key block is gated on .isWork so work machines don't
-  try to use the personal key.
+  ~/.ssh/config — personal infrastructure host aliases.
+
+  The IdentityAgent / IdentityFile lines below assume 1Password's SSH
+  agent is running locally (and the personal-ssh-key.pub is on disk),
+  so they are gated on darwin. On Linux servers without 1Password we
+  must NOT emit IdentityAgent — it overrides the forwarded
+  SSH_AUTH_SOCK and breaks agent forwarding from the Mac. The
+  github.com personal-key entry is additionally gated on .isWork so
+  work machines don't try to use the personal key.
+
+  When 1Password is installed on a Linux desktop, replace the
+  `eq .chezmoi.os "darwin"` predicate with something like
+  `.has1Password` (a new flag — currently in the IMPROVEMENTS backlog).
 */ -}}
 Include ~/.colima/ssh_config
 
 Host jason-um700.learst.net
   HostName jason-um700.learst.net
   User jason
+{{- if eq .chezmoi.os "darwin" }}
   IdentityAgent ~/.1password/agent.sock
+{{- end }}
   ForwardAgent yes
 
 Host 192.168.171.20
@@ -24,13 +34,15 @@ Host apps1.lan.bigjay517.com
   User pi
 
 Host github.com
-{{- if not .isWork }}
+{{- if and (eq .chezmoi.os "darwin") (not .isWork) }}
   IdentityFile ~/.ssh/personal-ssh-key.pub
   IdentitiesOnly yes
 {{- end }}
 
 Host *
+{{- if eq .chezmoi.os "darwin" }}
   IdentityAgent ~/.1password/agent.sock
+{{- end }}
 
 Host nixos.learst.net
   ForwardAgent yes

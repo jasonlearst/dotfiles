@@ -44,6 +44,14 @@ want a different commit email on work hosts.
 **Approach:** `promptStringOnce` for `workEmail` at init, then
 `email = {{ if .isWork }}{{ .workEmail }}{{ else }}{{ .email }}{{ end }}`.
 
+### [ ] Add `.has1Password` flag (or similar) for ssh-config gating
+**Why:** The 1Password agent / personal-key lines in
+`private_dot_ssh/private_config.tmpl` are currently gated on
+`eq .chezmoi.os "darwin"`. That's correct for today's machines (Mac has
+1Password, Linux server doesn't), but if 1Password is ever installed on
+a Linux desktop the SSH config there would stop using it. Add a
+`promptBoolOnce` for `has1Password` and use that as the predicate.
+
 ### [ ] Stable SSH_AUTH_SOCK across tmux/mosh reattaches on remote boxes
 **Why:** When you reattach to a tmux session that was started by a previous
 SSH login, the forwarded `SSH_AUTH_SOCK` path (e.g. `/tmp/ssh-XXXX/agent.NNNN`)
