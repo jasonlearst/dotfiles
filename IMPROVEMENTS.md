@@ -45,6 +45,24 @@ want a different commit email on work hosts.
 **Approach:** `promptStringOnce` for `workEmail` at init, then
 `email = {{ if .isWork }}{{ .workEmail }}{{ else }}{{ .email }}{{ end }}`.
 
+### [ ] Stable SSH_AUTH_SOCK across tmux/mosh reattaches on remote boxes
+**Why:** When you reattach to a tmux session that was started by a previous
+SSH login, the forwarded `SSH_AUTH_SOCK` path (e.g. `/tmp/ssh-XXXX/agent.NNNN`)
+is stale — that socket file is gone with the original ssh process. Git
+operations from inside the reattached pane fail with "Could not open a
+connection to your authentication agent."
+**Approach:** Small login-time script that symlinks the latest forwarded
+socket to a stable path (e.g. `~/.ssh/agent.sock`), then a tmux/fish hook
+that exports `SSH_AUTH_SOCK` from the symlink. Pattern:
+```fish
+if test -n "$SSH_AUTH_SOCK"; and test -S "$SSH_AUTH_SOCK"
+    ln -sf "$SSH_AUTH_SOCK" "$HOME/.ssh/agent.sock"
+end
+set -gx SSH_AUTH_SOCK "$HOME/.ssh/agent.sock"
+```
+Plus tmux: `set -g update-environment "SSH_AUTH_SOCK ..."` so new panes
+re-read it.
+
 ---
 
 ## macOS dotfiles to import
@@ -67,7 +85,11 @@ other prefs. Annoying to recreate.
 **Why:** Currently has hardcoded `/Users/jason/bin` (should be `$HOME/bin`).
 Sources cargo env. Useful on Linux/WSL too.
 **Approach:** `dot_profile.tmpl`. Branch any platform-specific lines on
-`.chezmoi.os`.
+`.chezmoi.os`. Source `~/.profile.local` at the end if it exists, so
+per-machine bits stay local. **Adoption hazard:** Linux distros ship a
+default `.profile` (Debian/Ubuntu put `~/bin` and `~/.local/bin` on PATH,
+source `.bashrc` for interactive bash). Adopting blindly will overwrite
+those — see "Adoption strategy" below before applying on other machines.
 
 ### [ ] Track htop config
 **File:** `~/.config/htop/htoprc` (1.4KB)
@@ -129,6 +151,43 @@ target dirs).
 **File:** `README.md`
 **Approach:** Either fill them in or remove the placeholder sections.
 Currently say "TODO".
+
+---
+
+## Adoption strategy (read before importing on other machines)
+
+When adding a dotfile that ALREADY EXISTS on other machines (`.profile`,
+`.zshrc`, etc.), `chezmoi apply` will overwrite the existing file with the
+template's rendered output. To migrate safely:
+
+1. **On the canonical machine** (this Mac), import the current file:
+   ```
+   chezmoi add ~/.profile        # copies into source as `dot_profile`
+   ```
+2. **Inspect on every other machine** before applying:
+   ```
+   chezmoi diff ~/.profile       # what would change
+   chezmoi merge ~/.profile      # 3-way merge if there's drift
+   ```
+   `chezmoi merge` opens `$EDITOR` (or whatever `merge.command` is set
+   to in chezmoi config) with the destination, source, and target — fold
+   per-machine bits into the template (or into a sourced `.local` file).
+
+3. **For per-machine additions** (e.g. one server needs an extra PATH
+   entry), end the templated file with:
+   ```sh
+   [ -f ~/.profile.local ] && . ~/.profile.local
+   ```
+   `.profile.local` stays unmanaged → drift-tolerant.
+
+4. **Distro defaults** (Debian/Ubuntu `.profile`, Fedora `/etc/skel`)
+   should be reviewed and folded in. Most ship logic that puts `~/bin`
+   and `~/.local/bin` on PATH if they exist; we want to keep that.
+
+5. **Use `--dry-run` with `--verbose`** on the first apply per machine:
+   ```
+   chezmoi apply --dry-run --verbose
+   ```
 
 ---
 
