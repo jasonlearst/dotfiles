@@ -1,6 +1,11 @@
 #!/bin/bash
+#
+# Install Brewfile packages on macOS. --no-upgrade means this only
+# installs missing items; already-installed packages stay at their
+# current version. Run `brew upgrade` manually when you want updates.
+#
+# dot_Brewfile hash: {{ include "dot_Brewfile" | sha256sum }}
 
 set -eufo pipefail
 
-# dot_Brewfile hash: {{ include "dot_Brewfile" | sha256sum }}
-brew bundle install --file ~/.Brewfile
+brew bundle install --no-upgrade --file ~/.Brewfile
