@@ -14,4 +14,5 @@ IMPROVEMENTS.md
 .config/fish/functions/tailscale.fish
 .config/fish/compleations/tailscale.fish
 .Brewfile
+.1password/**
 {{ end }}

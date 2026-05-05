@@ -44,5 +44,20 @@ end
 
 {{- if eq .chezmoi.os "darwin" }}
 test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shell_integration.fish
-set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
-{{ end }}
+{{- end }}
+
+# 1Password SSH agent — SSH_AUTH_SOCK per platform.
+#   macOS:  ~/.1password/agent.sock is a chezmoi-managed symlink into the
+#           1Password Group Container (see dot_1password/symlink_agent.sock.tmpl).
+#   Linux:  1Password Linux app creates the socket directly at
+#           ~/.1password/agent.sock.
+#   WSL:    requires npiperelay + socat forwarding from Windows; see
+#           https://developer.1password.com/docs/ssh/agent/wsl-windows
+{{- if .isWSL }}
+# Uncomment after configuring npiperelay+socat (point at the relayed socket):
+# set -gx SSH_AUTH_SOCK $HOME/.ssh/wsl-1password-agent.sock
+{{- else }}
+if test -S ~/.1password/agent.sock
+    set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
+end
+{{- end }}

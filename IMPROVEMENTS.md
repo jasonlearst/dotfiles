@@ -38,14 +38,6 @@ share with Linux/WSL Homebrew.
 - `dot_Brewfile_work.tmpl` gated on `.isWork`
 - Update darwin install script to bundle all three
 
-### [ ] Branch `SSH_AUTH_SOCK` per-platform in fish config
-**File:** `dot_config/private_fish/config.fish.tmpl:46-47`
-**Why:** Currently `SSH_AUTH_SOCK = ~/.1password/agent.sock` is darwin-only.
-1Password Linux uses the same socket path; WSL needs npiperelay forwarding
-from Windows.
-**Approach:** add `else if .isWSL` (npiperelay) and `else if linux`
-(keep same path).
-
 ### [ ] Wire `.isWork` into gitconfig email
 **File:** `dot_gitconfig.tmpl:3`
 **Why:** Right now `.email` is one value across all machines. Most people
@@ -148,3 +140,5 @@ Currently say "TODO".
 - ~~Hardcoded `/Users/jason` in gitconfig~~ — `.chezmoi.homeDir` in `7e40454`
 - ~~Track `~/.ssh/config`~~ — added in `3cdf113`
 - ~~macOS defaults script~~ — added in `3cdf113`
+- ~~Branch `SSH_AUTH_SOCK` per-platform~~ — fish config + chezmoi-managed
+  `~/.1password/agent.sock` symlink on macOS
