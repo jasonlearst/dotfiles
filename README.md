@@ -34,10 +34,6 @@ If you have any ideas for improvement feel free to contribute!
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
 
-## History
-
-TODO: Write history
-
 ## Credits
 
 [http://dotfiles.github.io/](http://dotfiles.github.io/)  
@@ -45,4 +41,4 @@ TODO: Write history
 
 ## License
 
-TODO: Write license
+MIT — see [LICENSE.txt](./LICENSE.txt).

@@ -145,11 +145,6 @@ gitconfig points elsewhere) and `~/.gitignore_global` (3 lines).
 with common dev junk (`.idea`, `.vscode`, `.env*`, `.direnv`, language
 target dirs).
 
-### [ ] Update README "History" / "License" placeholders
-**File:** `README.md`
-**Approach:** Either fill them in or remove the placeholder sections.
-Currently say "TODO".
-
 ---
 
 ## Adoption strategy (read before importing on other machines)
@@ -211,3 +206,5 @@ template's rendered output. To migrate safely:
 - ~~Auto-install tmux + vim plugins on config change~~ — added
   `.chezmoiscripts/run_onchange_after_install-{tmux,vim}-plugins.sh.tmpl`,
   hashed against `dot_tmux.conf` / `dot_vimrc` so re-fire is automatic
+- ~~README placeholder TODOs~~ — History dropped (git is the history),
+  License now references LICENSE.txt
