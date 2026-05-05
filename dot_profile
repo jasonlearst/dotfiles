@@ -1,0 +1,29 @@
+# ~/.profile — POSIX-shell login env. Sourced by sh/bash/dash/zsh login
+# shells. fish has its own config and does not read this.
+
+# Prepend ~/bin and ~/.local/bin to PATH when they exist (matches the
+# Debian/Ubuntu default; macOS has neither by default but bin/ is created
+# explicitly on this Mac and .local/bin is used by chezmoi externals).
+for d in "$HOME/bin" "$HOME/.local/bin"; do
+    if [ -d "$d" ]; then
+        case ":$PATH:" in
+            *":$d:"*) ;;
+            *) PATH="$d:$PATH" ;;
+        esac
+    fi
+done
+export PATH
+
+# Source Rust toolchain env if installed
+if [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+fi
+
+# Source ~/.bashrc when running an interactive bash login (Debian/Ubuntu
+# default). No effect under sh/dash/zsh.
+if [ -n "${BASH_VERSION:-}" ] && [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+fi
+
+# Per-machine overrides — keep this last so .local can adjust anything above
+[ -f "$HOME/.profile.local" ] && . "$HOME/.profile.local"

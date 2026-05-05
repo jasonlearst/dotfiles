@@ -81,15 +81,6 @@ other prefs. Annoying to recreate.
 **File:** `~/.config/zed/settings.json` (26 lines)
 **Approach:** Drop into `dot_config/zed/settings.json`. Trivial.
 
-### [ ] Track `~/.profile`
-**Why:** Currently has hardcoded `/Users/jason/bin` (should be `$HOME/bin`).
-Sources cargo env. Useful on Linux/WSL too.
-**Approach:** `dot_profile.tmpl`. Branch any platform-specific lines on
-`.chezmoi.os`. Source `~/.profile.local` at the end if it exists, so
-per-machine bits stay local. **Adoption hazard:** Linux distros ship a
-default `.profile` (Debian/Ubuntu put `~/bin` and `~/.local/bin` on PATH,
-source `.bashrc` for interactive bash). Adopting blindly will overwrite
-those — see "Adoption strategy" below before applying on other machines.
 
 ### [ ] Track htop config
 **File:** `~/.config/htop/htoprc` (1.4KB)
@@ -201,3 +192,6 @@ template's rendered output. To migrate safely:
 - ~~macOS defaults script~~ — added in `3cdf113`
 - ~~Branch `SSH_AUTH_SOCK` per-platform~~ — fish config + chezmoi-managed
   `~/.1password/agent.sock` symlink on macOS
+- ~~Track `~/.profile`~~ — added portable `dot_profile`: conditional
+  `~/bin` + `~/.local/bin`, guarded cargo env, bashrc source for
+  interactive bash, `~/.profile.local` fall-through
