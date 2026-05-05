@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# Install / clean vim-plug plugins whenever ~/.vimrc changes. The hash
+# line below ties this script's content to dot_vimrc so run_onchange_
+# re-fires when the plugin list (or anything else in vimrc) changes.
+# PlugInstall --sync waits for clones to finish; PlugClean! removes
+# plugins no longer in the vimrc; both are idempotent.
+#
+# vimrc hash: {{ include "dot_vimrc" | sha256sum }}
+
+set -eufo pipefail
+
+if ! command -v vim >/dev/null 2>&1; then
+    echo "vim not installed; skipping plugin install."
+    exit 0
+fi
+if [ ! -f "$HOME/.vim/autoload/plug.vim" ]; then
+    echo "vim-plug not installed at ~/.vim/autoload/plug.vim; skipping."
+    exit 0
+fi
+
+echo "Installing/cleaning vim-plug plugins..."
+vim -E -s -u "$HOME/.vimrc" -c "PlugInstall --sync | PlugClean! | qa" || true

@@ -197,3 +197,9 @@ template's rendered output. To migrate safely:
 - ~~Linux package install for Debian/Ubuntu~~ — added
   `.chezmoiscripts/linux/run_onchange_before_install-packages.sh.tmpl`
   (apt). Other distros remain open (see top section)
+- ~~Add zoxide as a chezmoi external for Linux~~ — Mac uses Homebrew
+- ~~Gate `dot_config/1Password/`~~ — darwin-only (no longer placed on
+  Linux servers)
+- ~~Auto-install tmux + vim plugins on config change~~ — added
+  `.chezmoiscripts/run_onchange_after_install-{tmux,vim}-plugins.sh.tmpl`,
+  hashed against `dot_tmux.conf` / `dot_vimrc` so re-fire is automatic

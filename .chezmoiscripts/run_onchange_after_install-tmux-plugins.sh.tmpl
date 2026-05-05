@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Install / clean tmux plugins via TPM whenever ~/.tmux.conf changes.
+# The hash line below makes this script's content change when dot_tmux.conf
+# changes, which triggers run_onchange_ to re-fire on the next chezmoi apply.
+# TPM operations are idempotent: install_plugins skips already-installed
+# plugins; clean_plugins removes ones no longer in the config.
+#
+# tmux config hash: {{ include "dot_tmux.conf" | sha256sum }}
+
+set -eufo pipefail
+
+if ! command -v tmux >/dev/null 2>&1; then
+    echo "tmux not installed; skipping plugin install."
+    exit 0
+fi
+if [ ! -x "$HOME/.tmux/plugins/tpm/bin/install_plugins" ]; then
+    echo "TPM not installed at ~/.tmux/plugins/tpm; skipping."
+    exit 0
+fi
+
+echo "Installing/cleaning tmux plugins via TPM..."
+"$HOME/.tmux/plugins/tpm/bin/install_plugins"
+"$HOME/.tmux/plugins/tpm/bin/clean_plugins" || true

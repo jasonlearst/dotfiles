@@ -48,4 +48,9 @@
     url = {{ gitHubLatestReleaseAssetURL "mgunyho/tere" (printf "tere-*-%s-unknown-%s-musl.zip" $a .chezmoi.os) | quote }}
     executable = true
     path = "tere"
+[".local/bin/zoxide"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "ajeetdsouza/zoxide" (printf "zoxide-*-%s-unknown-%s-musl.tar.gz" $a .chezmoi.os) | quote }}
+    executable = true
+    path = "zoxide"
 {{- end -}}

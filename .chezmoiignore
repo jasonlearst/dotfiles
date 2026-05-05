@@ -11,6 +11,7 @@ IMPROVEMENTS.md
 {{ if ne .chezmoi.os "darwin" }}
 .chezmoiscripts/darwin/**
 .config/homebrew
+.config/1Password/**
 .config/fish/functions/tailscale.fish
 .config/fish/compleations/tailscale.fish
 .Brewfile
