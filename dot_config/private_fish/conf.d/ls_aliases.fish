@@ -1,7 +1,9 @@
 # ~/.config/fish/conf.d/ls_aliases.fish
 
-function _ls_wrapper --description 'Wrapper for ls/lsd commands'
-    if command -q lsd
+function _ls_wrapper --description 'Wrapper for eza/lsd/ls'
+    if command -q eza
+        command eza --color=always --group-directories-first --icons $argv
+    else if command -q lsd
         command lsd $argv
     else
         command ls $argv
@@ -30,4 +32,8 @@ end
 
 function lt --description 'Show tree of directory contents'
     _ls_wrapper --tree $argv
+end
+
+function l. --description 'Show only dotfiles'
+    _ls_wrapper -a | grep -e '^\.'
 end
