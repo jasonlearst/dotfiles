@@ -1,24 +1,32 @@
 {{- /*
   ~/.ssh/config — personal infrastructure host aliases.
 
-  The IdentityAgent / IdentityFile lines below assume 1Password's SSH
-  agent is running locally (and the personal-ssh-key.pub is on disk),
-  so they are gated on darwin. On Linux servers without 1Password we
-  must NOT emit IdentityAgent — it overrides the forwarded
-  SSH_AUTH_SOCK and breaks agent forwarding from the Mac. The
-  github.com personal-key entry is additionally gated on .isWork so
-  work machines don't try to use the personal key.
+  IdentityAgent gating — we only emit `IdentityAgent ~/.1password/agent.sock`
+  when 1Password's SSH agent is actually present locally:
+    - darwin: assumed (chezmoi manages the symlink into the Group Container).
+    - linux (non-WSL): emit only if ~/.1password/agent.sock exists at apply
+      time — checked via the `stat` template func. This keeps Linux servers
+      without 1Password clean: emitting IdentityAgent there would override
+      the forwarded SSH_AUTH_SOCK and break agent forwarding from the Mac.
+    - WSL: skipped (forwarded socket lives elsewhere; see config.fish.tmpl).
 
-  When 1Password is installed on a Linux desktop, replace the
-  `eq .chezmoi.os "darwin"` predicate with something like
-  `.has1Password` (a new flag — currently in the IMPROVEMENTS backlog).
+  The github.com personal-key entry is additionally gated on .isWork so work
+  machines don't try to use the personal key.
 */ -}}
+{{- $hasOnePasswordAgent := false -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $hasOnePasswordAgent = true -}}
+{{- else if and (eq .chezmoi.os "linux") (not .isWSL) -}}
+{{-   if stat (joinPath .chezmoi.homeDir ".1password" "agent.sock") -}}
+{{-     $hasOnePasswordAgent = true -}}
+{{-   end -}}
+{{- end -}}
 Include ~/.colima/ssh_config
 
 Host jason-um700.learst.net
   HostName jason-um700.learst.net
   User jason
-{{- if eq .chezmoi.os "darwin" }}
+{{- if $hasOnePasswordAgent }}
   IdentityAgent ~/.1password/agent.sock
 {{- end }}
   ForwardAgent yes
@@ -40,7 +48,7 @@ Host github.com
 {{- end }}
 
 Host *
-{{- if eq .chezmoi.os "darwin" }}
+{{- if $hasOnePasswordAgent }}
   IdentityAgent ~/.1password/agent.sock
 {{- end }}
 
