@@ -35,6 +35,15 @@ if status is-interactive
     end
     # enable vi mode
     set -g fish_key_bindings fish_vi_key_bindings
+
+    # bash-style !! and !$ history expansion
+    if test "$fish_key_bindings" = fish_vi_key_bindings
+        bind -Minsert ! __history_previous_command
+        bind -Minsert '$' __history_previous_command_arguments
+    else
+        bind ! __history_previous_command
+        bind '$' __history_previous_command_arguments
+    end
 end
 
 # Set TERM to xterm-256color when using Ghostty
@@ -60,4 +69,101 @@ test -e {$HOME}/.iterm2_shell_integration.fish ; and source {$HOME}/.iterm2_shel
 if test -S ~/.1password/agent.sock
     set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
 end
+{{- end }}
+
+# bat as the man pager (bat is installed via .chezmoiexternal.toml)
+set -gx MANROFFOPT "-c"
+set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
+
+# Helpers for !! / !$ bindings set up in the is-interactive block above
+function __history_previous_command
+    switch (commandline -t)
+    case "!"
+        commandline -t $history[1]
+        commandline -f repaint
+    case "*"
+        commandline -i !
+    end
+end
+
+function __history_previous_command_arguments
+    switch (commandline -t)
+    case "!"
+        commandline -t ""
+        commandline -f history-token-search-backward
+    case "*"
+        commandline -i '$'
+    end
+end
+
+# history with timestamps
+function history
+    builtin history --show-time='%F %T '
+end
+
+function backup --argument filename
+    cp $filename $filename.bak
+end
+
+function copy
+    set count (count $argv | tr -d \n)
+    if test "$count" = 2; and test -d "$argv[1]"
+        set from (echo $argv[1] | trim-right /)
+        set to (echo $argv[2])
+        command cp -r $from $to
+    else
+        command cp $argv
+    end
+end
+
+# cd shortcuts
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ......='cd ../../../../..'
+
+# colourised grep / dir
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias dir='dir --color=auto'
+alias vdir='vdir --color=auto'
+
+# misc QoL
+alias tarnow='tar -acf '
+alias untar='tar -zxvf '
+alias wget='wget -c '
+alias psmem='ps auxf | sort -nr -k 4'
+alias psmem10='ps auxf | sort -nr -k 4 | head -10'
+alias tb='nc termbin.com 9999'
+alias jctl='journalctl -p 3 -xb'
+{{- if eq (.chezmoi.osRelease.id | default "") "cachyos" }}
+
+# --- CachyOS integration ---
+if test -f /usr/share/cachyos-fish-config/conf.d/done.fish
+    source /usr/share/cachyos-fish-config/conf.d/done.fish
+end
+set -U __done_min_cmd_duration 10000
+set -U __done_notification_urgency_level low
+
+if command --query fastfetch
+    function fish_greeting
+        fastfetch
+    end
+end
+
+# pacman / Arch helpers
+alias update='sudo pacman -Syu'
+alias mirror='sudo cachyos-rate-mirrors'
+alias cleanup='sudo pacman -Rns (pacman -Qtdq)'
+alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
+alias gitpkg='pacman -Q | grep -i "\-git" | wc -l'
+alias big="expac -H M '%m\t%n' | sort -h | nl"
+alias fixpacman='sudo rm /var/lib/pacman/db.lck'
+alias grubup='sudo grub-mkconfig -o /boot/grub/grub.cfg'
+alias apt='man pacman'
+alias apt-get='man pacman'
+alias please='sudo'
+alias hw='hwinfo --short'
 {{- end }}
