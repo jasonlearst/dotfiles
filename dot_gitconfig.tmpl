@@ -42,3 +42,11 @@
     d = difftool
 [difftool]
 	prompt = false
+{{- if lookPath "gh" }}
+[credential "https://github.com"]
+	helper =
+	helper = !{{ lookPath "gh" }} auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !{{ lookPath "gh" }} auth git-credential
+{{- end }}
