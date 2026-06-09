@@ -71,51 +71,47 @@ defaults write com.apple.menuextra.clock ShowDate -int 1
 defaults write com.apple.menuextra.clock ShowAMPM -bool true
 
 
-############################################################
-# Suggestions — uncomment to try, see header for rollback
-############################################################
-
 # --- Faster key repeat (pairs nicely with ApplePressAndHoldEnabled=false) ---
-# defaults write NSGlobalDomain KeyRepeat -int 2
-# defaults write NSGlobalDomain InitialKeyRepeat -int 15
+defaults write NSGlobalDomain KeyRepeat -int 2
+defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
 # --- Disable smart quotes / smart dashes (annoying in code) ----------------
-# defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-# defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
 
 # --- Dock: hide Recents tray ----------------------------------------------
-# defaults write com.apple.dock show-recents -bool false
+defaults write com.apple.dock show-recents -bool false
 
 # --- Dock: faster auto-hide animation -------------------------------------
-# defaults write com.apple.dock autohide-time-modifier -float 0.15
-# defaults write com.apple.dock autohide-delay -float 0
+defaults write com.apple.dock autohide-time-modifier -float 0.15
+defaults write com.apple.dock autohide-delay -float 0
 
 # --- Screenshots: redirect to ~/Pictures/Screenshots, default PNG ----------
-# mkdir -p "$HOME/Pictures/Screenshots"
-# defaults write com.apple.screencapture location -string "$HOME/Pictures/Screenshots"
-# defaults write com.apple.screencapture type -string "png"
-# defaults write com.apple.screencapture disable-shadow -bool true
-# defaults write com.apple.screencapture include-date -bool true
+mkdir -p "$HOME/Pictures/Screenshots"
+defaults write com.apple.screencapture location -string "$HOME/Pictures/Screenshots"
+defaults write com.apple.screencapture type -string "png"
+defaults write com.apple.screencapture disable-shadow -bool true
+defaults write com.apple.screencapture include-date -bool true
 
 # --- Suppress .DS_Store on USB volumes too --------------------------------
-# defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # --- Finder: sort folders before files in list view -----------------------
-# defaults write com.apple.finder _FXSortFoldersFirst -bool true
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
 # --- Finder: show full POSIX path in window title -------------------------
-# defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
 
 # --- Finder: search current folder by default (not whole Mac) -------------
-# defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
 
 # --- Save dialogs default to expanded view --------------------------------
-# defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
-# defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
 
 # --- Print dialog defaults to expanded view -------------------------------
-# defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
-# defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
 
 ############################################################
