@@ -17,6 +17,9 @@ if status is-interactive
             COMPLETE=fish jj | source
         end
     end
+    if command --query just
+        JUST_COMPLETE=fish just | source
+    end
     if command --query mcfly
         mcfly init fish | source
     end
@@ -70,6 +73,13 @@ if test -S ~/.1password/agent.sock
     set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
 end
 {{- end }}
+
+# SOPS age key on demand: sops 3.11+ runs SOPS_AGE_KEY_CMD whenever it needs
+# the key, so no script or per-invocation export is required. The value is only
+# an op:// reference, not a secret. CI sets SOPS_AGE_KEY/_FILE directly instead.
+if command --query op
+    set -gx SOPS_AGE_KEY_CMD "op read 'op://Personal/Infra - SOPS age Key/credential'"
+end
 
 # bat as the man pager (bat is installed via .chezmoiexternal.toml)
 set -gx MANROFFOPT "-c"
@@ -138,7 +148,7 @@ alias psmem='ps auxf | sort -nr -k 4'
 alias psmem10='ps auxf | sort -nr -k 4 | head -10'
 alias tb='nc termbin.com 9999'
 alias jctl='journalctl -p 3 -xb'
-{{- if eq (.chezmoi.osRelease.id | default "") "cachyos" }}
+{{- if eq (index .chezmoi.osRelease "id" | default "") "cachyos" }}
 
 # --- CachyOS integration ---
 if test -f /usr/share/cachyos-fish-config/conf.d/done.fish
