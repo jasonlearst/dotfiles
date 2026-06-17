@@ -73,8 +73,8 @@ set clipboard=unnamed
 " minimum lines about or below the cursor
 set scrolloff=10
 
-" enable omni completion
-filetype plugin on
+" enable omni completion and per-filetype indent scripts (yaml/python/c/...)
+filetype plugin indent on
 set omnifunc=syntaxcomplete#Complete
 
 " enable indent guides
@@ -93,11 +93,10 @@ set formatoptions=tcrqn
 " take indent for new line from previous line
 set autoindent
 
-" smart autoindenting for C programs
-set smartindent
-
-" do c-style indenting
-set cindent
+" NOTE: global smartindent/cindent forced C-style indenting onto every
+" filetype (e.g. inserting bogus indent in YAML on <CR>). With
+" 'filetype plugin indent on' set above, the correct indent script loads
+" per filetype -- C files still get C indenting -- so these are dropped.
 
 " tab spacing (settings below are just to unify it)
 set tabstop=3
