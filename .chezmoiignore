@@ -21,3 +21,38 @@ IMPROVEMENTS.md
 {{ if ne .chezmoi.os "linux" }}
 .chezmoiscripts/linux/**
 {{ end }}
+
+# ~/.claude: only CLAUDE.md and hooks/*.sh are tracked. Everything else is
+# machine-local, churny, or private (transcripts, sessions, tokens) and must
+# never sync. chezmoi only manages files you explicitly `chezmoi add`, so these
+# are belt-and-suspenders against an accidental wholesale `chezmoi add ~/.claude`.
+.claude/.credentials.json
+.claude/.claude.json*
+.claude/.last-*
+.claude/.DS_Store
+.claude/*.lock
+.claude/*.log
+.claude/claudebar-hook-port
+.claude/settings.local.json
+.claude/stats-cache.json
+.claude/mcp-*cache*.json
+.claude/projects/**
+.claude/sessions/**
+.claude/session-env/**
+.claude/shell-snapshots/**
+.claude/history.jsonl
+.claude/debug/**
+.claude/daemon/**
+.claude/daemon.*
+.claude/telemetry/**
+.claude/cache/**
+.claude/paste-cache/**
+.claude/file-history/**
+.claude/backups/**
+.claude/todos/**
+.claude/tasks/**
+.claude/jobs/**
+.claude/plans/**
+.claude/ide/**
+.claude/plugins/**
+.claude/statsig/**
