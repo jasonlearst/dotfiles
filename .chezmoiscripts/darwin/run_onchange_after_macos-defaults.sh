@@ -99,9 +99,6 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 # --- Finder: sort folders before files in list view -----------------------
 defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
-# --- Finder: show full POSIX path in window title -------------------------
-defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
-
 # --- Finder: search current folder by default (not whole Mac) -------------
 defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
 
