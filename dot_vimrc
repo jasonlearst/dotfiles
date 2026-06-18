@@ -1,6 +1,11 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Vim Plug
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+" polyglot ships an old yaml indenter that wrongly adds a level after a
+" complete 'key: value' line; disable its yaml pack so Vim's bundled
+" (correct) yaml indent script loads instead.
+let g:polyglot_disabled = ['yaml']
+
 call plug#begin()
 "Plug 'chazy/cscope_maps'
 "Plug 'simplyzhao/cscope_maps.vim'
