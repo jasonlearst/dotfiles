@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Install/update Neovim on Linux via bob (the nvim version manager fetched
+# as a chezmoi external to ~/.local/bin/bob). Distro nvim packages lag
+# badly; bob tracks upstream stable. We symlink bob's managed nvim into
+# ~/.local/bin so it lands on PATH ahead of the distro 'vim'.
+#
+# To bump later: `bob use stable` (or pin a version here and re-apply).
+# run_onchange_ re-runs this only when its content changes.
+
+set -eufo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if ! command -v bob >/dev/null 2>&1; then
+    echo "bob not found at ~/.local/bin/bob (external not applied yet); skipping."
+    exit 0
+fi
+
+echo "Installing/updating Neovim (stable) via bob..."
+bob use stable
+
+nvim_bin="$HOME/.local/share/bob/nvim-bin/nvim"
+if [ -x "$nvim_bin" ]; then
+    ln -sf "$nvim_bin" "$HOME/.local/bin/nvim"
+    echo "Neovim ready: $("$nvim_bin" --version | head -1)"
+else
+    echo "bob did not produce $nvim_bin; check 'bob list'." >&2
+fi
