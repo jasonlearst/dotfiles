@@ -4,7 +4,11 @@
 # below ties this script to init.lua so run_onchange_ re-fires on config
 # edits. `Lazy! sync` installs/updates/cleans headlessly; lazy also
 # auto-installs on first interactive launch, so this just pre-warms it.
-# Skipped when nvim isn't installed yet (e.g. Linux before bob runs).
+#
+# Ordering: chezmoi runs after_ scripts alphabetically by target path. The
+# "nvim-plugins-sync" name (no "install-" prefix) sorts after
+# "linux/install-neovim.sh" so bob has installed nvim before we sync here.
+# Keep the guard below as defense-in-depth if that install was skipped.
 #
 # init.lua hash: {{ include "dot_config/nvim/init.lua" | sha256sum }}
 
