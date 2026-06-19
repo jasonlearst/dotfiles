@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Sync lazy.nvim plugins whenever the Neovim config changes. The hash line
+# below ties this script to init.lua so run_onchange_ re-fires on config
+# edits. `Lazy! sync` installs/updates/cleans headlessly; lazy also
+# auto-installs on first interactive launch, so this just pre-warms it.
+# Skipped when nvim isn't installed yet (e.g. Linux before bob runs).
+#
+# init.lua hash: {{ include "dot_config/nvim/init.lua" | sha256sum }}
+
+set -eufo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if ! command -v nvim >/dev/null 2>&1; then
+    echo "nvim not installed; skipping plugin sync."
+    exit 0
+fi
+
+echo "Syncing lazy.nvim plugins..."
+nvim --headless "+Lazy! sync" +qa || true
