@@ -81,7 +81,7 @@ abbr -a glo git log --oneline --decorate
 abbr -a glols git log --oneline --decorate --graph --stat
 abbr -a glp git log -p
 abbr -a gsh git show
-abbr -a gwch git whatchanged -p --abbrev-commit --pretty=medium
+abbr -a gwch git log --raw --no-merges
 abbr -a gcount git shortlog --summary --numbered
 abbr -a gbl git blame -w
 
