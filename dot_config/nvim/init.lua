@@ -155,7 +155,6 @@ require("lazy").setup({
   -- carried over unchanged from ~/.vimrc
   { "tpope/vim-fugitive" },
   { "christoomey/vim-tmux-navigator" },
-  { "ervandew/supertab" },
 }, {
   change_detection = { notify = false },
 })
