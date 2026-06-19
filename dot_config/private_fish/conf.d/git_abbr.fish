@@ -70,6 +70,102 @@ abbr -a gstl git stash list
 # reset / restore / clean
 abbr -a grh git reset
 abbr -a grhh git reset --hard
+abbr -a grhs git reset --soft
 abbr -a grs git restore
 abbr -a grss git restore --staged
 abbr -a gclean git clean -fd
+abbr -a gpristine "git reset --hard && git clean -dffx"
+
+# more log views
+abbr -a glo git log --oneline --decorate
+abbr -a glols git log --oneline --decorate --graph --stat
+abbr -a glp git log -p
+abbr -a gsh git show
+abbr -a gwch git log --raw --no-merges
+abbr -a gcount git shortlog --summary --numbered
+abbr -a gbl git blame -w
+
+# more diff views
+abbr -a gdca git diff --cached
+abbr -a gdw git diff --word-diff
+abbr -a gdt git diff-tree --no-commit-id --name-only -r
+
+# commit extras
+abbr -a gcmsg --set-cursor "git commit -m \"%\""
+abbr -a gfu --set-cursor "git commit --fixup %"
+abbr -a gsq --set-cursor "git commit --squash %"
+
+# rebase extras
+abbr -a grbs git rebase --skip
+
+# push extras
+abbr -a gpd git push --dry-run
+abbr -a gpt git push --tags
+
+# stash extras
+abbr -a gstaa git stash apply
+abbr -a gstd git stash drop
+abbr -a gstc git stash clear
+abbr -a gsts git stash show --text
+
+# remotes
+abbr -a gr git remote
+abbr -a grv git remote -v
+abbr -a gra git remote add
+abbr -a gru git remote update
+
+# tags
+abbr -a gt git tag
+abbr -a gtv "git tag | sort -V"
+
+# revert
+abbr -a grev git revert
+
+# worktree
+abbr -a gwt git worktree
+abbr -a gwta git worktree add
+abbr -a gwtls git worktree list
+abbr -a gwtrm git worktree remove
+
+# bisect
+abbr -a gbs git bisect
+abbr -a gbss git bisect start
+abbr -a gbsg git bisect good
+abbr -a gbsb git bisect bad
+abbr -a gbsr git bisect reset
+
+# --- default-branch–aware helpers (functions: they compute main vs master) ---
+function git_main_branch --description 'Echo the repo default branch (main/master/trunk)'
+    command git rev-parse --git-dir >/dev/null 2>&1; or return
+    for b in main trunk master
+        if command git show-ref -q --verify refs/heads/$b
+            echo $b
+            return
+        end
+    end
+    echo main
+end
+
+function gcom --description 'Checkout the default branch'
+    git checkout (git_main_branch) $argv
+end
+
+function gmom --description 'Merge origin/<default branch>'
+    git merge origin/(git_main_branch) $argv
+end
+
+function grbom --description 'Rebase onto origin/<default branch>'
+    git rebase origin/(git_main_branch) $argv
+end
+
+function gpsup --description 'Push the current branch and set upstream'
+    git push --set-upstream origin (git rev-parse --abbrev-ref HEAD) $argv
+end
+
+function gbda --description 'Delete local branches already merged into the default branch'
+    set -l main (git_main_branch)
+    for b in (git branch --format='%(refname:short)' --merged $main)
+        test "$b" = "$main"; and continue
+        git branch -d $b
+    end
+end
