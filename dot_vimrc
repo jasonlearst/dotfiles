@@ -1,7 +1,13 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Vim Plug
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Correct filetype/highlighting for chezmoi source files (dot_*, *.tmpl).
+" use_tmp_buffer removes the load-order requirement; chezmoi.vim must not
+" be lazy-loaded, so it's listed first below.
+let g:chezmoi#use_tmp_buffer = 1
+
 call plug#begin()
+Plug 'alker0/chezmoi.vim'
 "Plug 'chazy/cscope_maps'
 "Plug 'simplyzhao/cscope_maps.vim'
 Plug 'romainl/Apprentice'

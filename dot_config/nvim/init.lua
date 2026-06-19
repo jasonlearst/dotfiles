@@ -102,7 +102,16 @@ require("lazy").setup({
           "toml", "typescript", "vim", "vimdoc", "yaml",
         },
         auto_install = true,
-        highlight = { enable = true },
+        highlight = {
+          enable = true,
+          -- chezmoi templates are base-lang + go-template braided together,
+          -- which no treesitter parser understands; let chezmoi.vim's regex
+          -- overlay highlight those buffers instead (filetype has
+          -- 'chezmoitmpl'). Treesitter stays on for everything else.
+          disable = function()
+            return vim.bo.filetype:find("chezmoitmpl") ~= nil
+          end,
+        },
         -- treesitter's yaml indenter won't nest after a bare 'key:' mapping;
         -- nvim's bundled yaml indentexpr does (and is the correct one, not
         -- the buggy polyglot copy), so let it handle yaml.
@@ -113,6 +122,15 @@ require("lazy").setup({
 
   -- indent guides (replaces vim-indent-guides)
   { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
+
+  -- correct filetype/highlighting for chezmoi source files (dot_*, *.tmpl)
+  {
+    "alker0/chezmoi.vim",
+    lazy = false,
+    init = function()
+      vim.g["chezmoi#use_tmp_buffer"] = true
+    end,
+  },
 
   -- carried over unchanged from ~/.vimrc
   { "tpope/vim-fugitive" },
