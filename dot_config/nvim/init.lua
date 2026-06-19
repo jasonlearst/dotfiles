@@ -1,5 +1,6 @@
 -- Neovim config -- a capable terminal editor, not an IDE.
--- Ported from ~/.vimrc; the upgrade over Vim is tree-sitter syntax/indent.
+-- Ported from ~/.vimrc; syntax + indentation use Neovim's built-ins
+-- (regex `syntax on` + filetype indent, both on by default).
 -- Plugins managed by lazy.nvim; commenting uses built-in gc (no plugin).
 
 ----------------------------------------------------------------------
@@ -136,36 +137,6 @@ require("lazy").setup({
     config = function()
       require("nord").setup({})
       pcall(vim.cmd.colorscheme, "nord")
-    end,
-  },
-
-  -- tree-sitter: accurate syntax + indentation (replaces vim-polyglot)
-  {
-    "nvim-treesitter/nvim-treesitter",
-    build = ":TSUpdate",
-    config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "bash", "c", "cpp", "css", "dockerfile", "go", "html", "json",
-          "lua", "make", "markdown", "markdown_inline", "python", "rust",
-          "toml", "typescript", "vim", "vimdoc", "yaml",
-        },
-        auto_install = true,
-        highlight = {
-          enable = true,
-          -- chezmoi templates are base-lang + go-template braided together,
-          -- which no treesitter parser understands; let chezmoi.vim's regex
-          -- overlay highlight those buffers instead (filetype has
-          -- 'chezmoitmpl'). Treesitter stays on for everything else.
-          disable = function()
-            return vim.bo.filetype:find("chezmoitmpl") ~= nil
-          end,
-        },
-        -- treesitter's yaml indenter won't nest after a bare 'key:' mapping;
-        -- nvim's bundled yaml indentexpr does (and is the correct one, not
-        -- the buggy polyglot copy), so let it handle yaml.
-        indent = { enable = true, disable = { "yaml" } },
-      })
     end,
   },
 
