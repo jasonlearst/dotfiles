@@ -69,8 +69,57 @@ set shortmess=atI
 " show relative line numbering
 set relativenumber
 
-" When nonempty, this option determines the content of the status line
-set statusline=%F%m%r%h%w\ [TYPE=%Y]\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
+" Statusline: colored mode badge + file + fugitive branch + position.
+function! s:StatuslineLabel() abort
+  let l:modes = {
+        \ 'n':'NORMAL', 'i':'INSERT', 'v':'VISUAL', 'V':'V-LINE',
+        \ "\<C-v>":'V-BLOCK', 's':'SELECT', 'c':'COMMAND',
+        \ 'R':'REPLACE', 't':'TERMINAL' }
+  return get(l:modes, mode(), toupper(mode()))
+endfunction
+
+function! StatuslineMode() abort
+  let l:hls = {
+        \ 'n':'StatusModeNormal', 'i':'StatusModeInsert', 'v':'StatusModeVisual',
+        \ 'V':'StatusModeVisual', "\<C-v>":'StatusModeVisual',
+        \ 'R':'StatusModeReplace', 'c':'StatusModeCommand', 't':'StatusModeTerminal' }
+  return '%#' . get(l:hls, mode(), 'StatusModeNormal') . '# ' . s:StatuslineLabel() . ' %*'
+endfunction
+
+function! StatuslineModePlain() abort
+  return s:StatuslineLabel()
+endfunction
+
+function! StatuslineGit() abort
+  if exists('*FugitiveHead')
+    let l:head = FugitiveHead()
+    return empty(l:head) ? '' : '  ' . l:head . ' '
+  endif
+  return ''
+endfunction
+
+function! s:SetStatusHl() abort
+  highlight StatusModeNormal   guifg=#2e3440 guibg=#81a1c1 gui=bold ctermfg=0 ctermbg=4
+  highlight StatusModeInsert   guifg=#2e3440 guibg=#a3be8c gui=bold ctermfg=0 ctermbg=2
+  highlight StatusModeVisual   guifg=#2e3440 guibg=#b48ead gui=bold ctermfg=0 ctermbg=5
+  highlight StatusModeReplace  guifg=#2e3440 guibg=#bf616a gui=bold ctermfg=0 ctermbg=1
+  highlight StatusModeCommand  guifg=#2e3440 guibg=#ebcb8b gui=bold ctermfg=0 ctermbg=3
+  highlight StatusModeTerminal guifg=#2e3440 guibg=#8fbcbb gui=bold ctermfg=0 ctermbg=6
+endfunction
+call s:SetStatusHl()
+augroup StatuslineHl
+  autocmd!
+  autocmd ColorScheme * call s:SetStatusHl()
+augroup END
+
+" %{%...%} re-evaluates its result as statusline syntax (needs Vim 8.2.2854+),
+" which is what lets the mode badge inject its own highlight; older Vims fall
+" back to plain uncolored mode text.
+if has('patch-8.2.2854')
+  let &statusline = '%{%StatuslineMode()%} %<%f%m%r%h%w%=%{StatuslineGit()}%y %l:%v %p%% %L '
+else
+  let &statusline = ' %{StatuslineModePlain()} %<%f%m%r%h%w%=%{StatuslineGit()}%y %l:%v %p%% %L '
+endif
 
 " share system clipboard
 set clipboard=unnamed
