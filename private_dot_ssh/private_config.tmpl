@@ -10,6 +10,11 @@
       the forwarded SSH_AUTH_SOCK and break agent forwarding from the Mac.
     - WSL: skipped (forwarded socket lives elsewhere; see config.fish.tmpl).
 
+  ForwardAgent — sudo on the self-managed hosts is pam_ssh_agent_auth, which
+  authenticates against the forwarded agent. Matched on domain only, so
+  connect by name: over a bare IP nothing matches and sudo falls back to a
+  password prompt.
+
   The github.com personal-key entry is additionally gated on .isWork so work
   machines don't try to use the personal key.
 */ -}}
@@ -22,41 +27,14 @@
 {{-   end -}}
 {{- end -}}
 Include ~/.colima/ssh_config
-
-Host jason-um700.learst.net
-  HostName jason-um700.learst.net
-  User jason
-{{- if $hasOnePasswordAgent }}
-  IdentityAgent ~/.1password/agent.sock
-{{- end }}
-  ForwardAgent yes
-
-Host 192.168.171.20
-  HostName 192.168.171.20
-
-Host 50.116.48.155
-  HostName 50.116.48.155
-
-Host apps1.lan.bigjay517.com
-  HostName apps1.lan.bigjay517.com
-  User pi
-
+{{ if and (eq .chezmoi.os "darwin") (not .isWork) }}
 Host github.com
-{{- if and (eq .chezmoi.os "darwin") (not .isWork) }}
   IdentityFile ~/.ssh/personal-ssh-key.pub
   IdentitiesOnly yes
-{{- end }}
-
+{{ end }}
+Host *.learst.net *.learst.link *.learst.cloud *.banded-delta.ts.net
+  ForwardAgent yes
+{{ if $hasOnePasswordAgent }}
 Host *
-{{- if $hasOnePasswordAgent }}
   IdentityAgent ~/.1password/agent.sock
 {{- end }}
-
-Host nixos.learst.net
-  ForwardAgent yes
-
-Host *.learst.net
-  ForwardAgent yes
-
-Host *.banded-delta.ts.net
-  ForwardAgent yes
