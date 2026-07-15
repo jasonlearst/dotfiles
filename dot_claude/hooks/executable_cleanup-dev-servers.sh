@@ -21,7 +21,7 @@ ps -axo pid,ppid,tty,command \
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   docker compose ls --format json 2>/dev/null \
     | jq -r '.[] | select(.Name|startswith("cc-")) | .Name' \
-    | while read -r proj; do docker compose -p "$proj" down -v 2>/dev/null; done
+    | while read -r proj; do docker compose -p "$proj" down 2>/dev/null; done
 fi
 
 exit 0
