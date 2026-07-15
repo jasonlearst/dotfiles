@@ -40,6 +40,32 @@
     unstage = reset HEAD --
     cached = diff --cached
     d = difftool
+    # `git branch --merged` only asks "is this an ancestor of the target?", so it
+    # never lists a branch that was rebased or cherry-picked -- the SHAs differ
+    # even though every line landed. `git cherry` compares by patch-id, catching
+    # those. Worktree-held branches are listed but never swept.
+    merged = "!f() { \
+        target=\"${1:-main}\"; \
+        git for-each-ref --format='%(refname:short)' refs/heads/ | while read -r b; do \
+            [ \"$b\" = \"$target\" ] && continue; \
+            if git worktree list --porcelain | grep -qx \"branch refs/heads/$b\"; then \
+                git merge-base --is-ancestor \"$b\" \"$target\" 2>/dev/null && printf '%s\\t%s\\n' \"$b\" 'merged (in use by a worktree)'; \
+                continue; \
+            fi; \
+            if git merge-base --is-ancestor \"$b\" \"$target\" 2>/dev/null; then \
+                printf '%s\\t%s\\n' \"$b\" 'merged'; \
+            elif [ -z \"$(git cherry \"$target\" \"$b\" 2>/dev/null | grep '^+')\" ]; then \
+                printf '%s\\t%s\\n' \"$b\" 'rebased/squashed onto target'; \
+            fi; \
+        done; }; f"
+    sweep = "!f() { \
+        target=\"${1:-main}\"; \
+        git merged \"$target\" | grep -v 'worktree' | while IFS=\"$(printf '\\t')\" read -r b why; do \
+            case \"$why\" in \
+                merged) git branch -d \"$b\" ;; \
+                *) git branch -D \"$b\" ;; \
+            esac; \
+        done; }; f"
 [difftool]
 	prompt = false
 {{- if lookPath "gh" }}
