@@ -17,6 +17,21 @@
 
   The github.com personal-key entry is additionally gated on .isWork so work
   machines don't try to use the personal key.
+
+  The KVM appliances only have a root account, hence the explicit `User root`
+  — without it ssh offers the local username and the login just fails. The
+  unifi gateway is the same story.
+
+  unifi's short alias is pinned to the LAN name because tailscale is currently
+  off the gateway for testing. Its banded-delta.ts.net record is stale — same
+  box, old tailnet IP — so it's listed as root for when tailscale goes back on,
+  but the alias must not route through it in the meantime.
+
+  Per-host blocks come before the wildcards: ssh takes the first value it sees
+  for a keyword, so anything host-specific has to win the race. Note that
+  `Host` matches the name typed on the command line, not the rewritten
+  HostName — so a short alias like `pikvm` does NOT pick up the
+  ForwardAgent/domain wildcards below and has to restate what it needs.
 */ -}}
 {{- $hasOnePasswordAgent := false -}}
 {{- if eq .chezmoi.os "darwin" -}}
@@ -32,6 +47,21 @@ Host github.com
   IdentityFile ~/.ssh/personal-ssh-key.pub
   IdentitiesOnly yes
 {{ end }}
+Host pikvm
+  HostName pikvm.banded-delta.ts.net
+
+Host momkvm
+  HostName momkvm.banded-delta.ts.net
+
+Host ltkvm
+  HostName ltkvm.banded-delta.ts.net
+
+Host unifi
+  HostName unifi.learst.net
+
+Host pikvm pikvm.learst.net pikvm.banded-delta.ts.net momkvm momkvm.banded-delta.ts.net ltkvm ltkvm.learst.net ltkvm.banded-delta.ts.net unifi unifi.learst.net unifi.banded-delta.ts.net
+  User root
+
 Host *.learst.net *.learst.link *.learst.cloud *.banded-delta.ts.net
   ForwardAgent yes
 {{ if $hasOnePasswordAgent }}
