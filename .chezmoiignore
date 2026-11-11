@@ -22,9 +22,13 @@ IMPROVEMENTS.md
 .chezmoiscripts/linux/**
 {{ end }}
 
-# ~/.claude: only CLAUDE.md and hooks/*.sh are tracked. Everything else is
-# machine-local, churny, or private (transcripts, sessions, tokens) and must
-# never sync. chezmoi only manages files you explicitly `chezmoi add`, so these
+{{ if .isWork }}
+.claude
+{{ end }}
+
+# ~/.claude: only CLAUDE.md and the skills/ folders added by name are tracked.
+# Everything else is machine-local, churny, or private (transcripts, sessions,
+# tokens) and must never sync. chezmoi only manages files you explicitly `chezmoi add`, so these
 # are belt-and-suspenders against an accidental wholesale `chezmoi add ~/.claude`.
 .claude/.credentials.json
 .claude/.claude.json*
