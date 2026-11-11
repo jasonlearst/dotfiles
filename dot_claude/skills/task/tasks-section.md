@@ -2,7 +2,7 @@
 
 `/file-issue`, `/worktree` and `/task` take a repo's facts from a `## Tasks` section in its root `CLAUDE.md`. The skills carry the process; this section carries what differs between repos.
 
-To draft one, read the repo: its remote, build and test setup, CI config, any existing `CLAUDE.md` and guides. Show the draft to the user and commit it only once they agree. It goes in a tracked `CLAUDE.md`, since worktrees only get tracked files.
+To draft one, read the repo: its remote, build and test setup, CI config, any existing `CLAUDE.md` and guides. Show the draft to the user and commit it only once they agree. It goes in a tracked `CLAUDE.md`, since worktrees only get tracked files. When offering a draft, mention that `/tasks-setup` does all of this in a worktree, and also migrates a repo's own copies of these skills.
 
 Fields, in this order. Leave out any that don't apply:
 
