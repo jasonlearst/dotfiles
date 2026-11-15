@@ -24,7 +24,7 @@ Run `vim` and install plugins with `:PlugInstall`
 
 On a personal Mac, the apply also sets up the AI agent identity in `~/.agent-identity` and runs `agent-setup`, which creates the machine's SSH key and lists the credentials still to create in a browser. Run `agent-setup` again until it reports nothing left; `~/.agent-identity/README.md` explains the rest.
 
-On a Mac with Homebrew, the first apply also asks for your password once, to put Homebrew on the PATH of apps opened from the Dock (git hooks that Workbench or Fork run, like git-lfs's, need it). Restart the Mac afterwards.
+On a personal Mac with Homebrew, the first apply also asks for your password once, to put Homebrew on the PATH of apps opened from the Dock (git hooks that Workbench or Fork run, like git-lfs's, need it). Restart the Mac afterwards. An apply that can't ask, with no terminal, says so and leaves it to the next apply.
 
 ## Usage
 
