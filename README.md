@@ -20,6 +20,8 @@ Run `tmux` and install plugins with `prefix + I` (capital i, as in in Install)
 Run `nvim` and install plugins with `:Lazy sync`
 Run `vim` and install plugins with `:PlugInstall`
 
+On a personal Mac, the apply also sets up the AI agent identity in `~/.agent-identity` and runs `agent-setup`, which creates the machine's SSH key and lists the credentials still to create in a browser. Run `agent-setup` again until it reports nothing left; `~/.agent-identity/README.md` explains the rest.
+
 ## Usage
 
 Use the dotfiles!

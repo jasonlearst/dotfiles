@@ -1,0 +1,120 @@
+#!/bin/bash
+# agent-setup: make this machine's agent credentials that can be made locally,
+# and list the ones that need a browser. Safe to re-run: it never replaces
+# anything that exists, makes no network calls, and prints no secrets.
+# chezmoi runs it after applying ~/.agent-identity.
+
+set -u
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+[ -r "$AI/activate" ] || { echo "agent-setup: $AI/activate is missing; run chezmoi apply first" >&2; exit 1; }
+KEY=$(. "$AI/activate" >/dev/null 2>&1; printf '%s' "${AGENT_SSH_KEY:-}")
+HOST=${KEY##*id_ed25519_agent_}
+# shellcheck disable=SC1091
+[ -r "$AI/local.env" ] && . "$AI/local.env"
+# shellcheck disable=SC1091
+[ -r "$AI/github-app/app.env" ] && . "$AI/github-app/app.env"
+SLUG=${GITHUB_APP_SLUG:-jasonlearst-agent}
+GITEA=${AGENT_GITEA_URL:-<your Gitea URL, set in local.env>}
+
+if [ -t 1 ]; then G=$'\e[32m' Y=$'\e[33m' B=$'\e[1m' N=$'\e[0m'; else G='' Y='' B='' N=''; fi
+done_() { printf '  %sok%s    %s\n' "$G" "$N" "$1"; }
+todo() { printf '  %stodo%s  %s\n' "$Y" "$N" "$1"; shift; for l in "$@"; do printf '        %s\n' "$l"; done; todos=$((todos + 1)); }
+note() { printf '  note  %s\n' "$1"; shift; for l in "$@"; do printf '        %s\n' "$l"; done; }
+todos=0
+
+printf '%sagent-setup%s for %s\n\n' "$B" "$N" "$HOST"
+
+(umask 077; mkdir -p "$AI"/ssh "$AI"/github-app/cache "$AI"/railway "$AI"/xdg/tea "$AI"/gcloud "$AI"/gnupg)
+chmod 700 "$AI" "$AI"/ssh "$AI"/github-app "$AI"/github-app/cache "$AI"/railway "$AI"/xdg "$AI"/xdg/tea "$AI"/gcloud "$AI"/gnupg
+[ -e "$AI/ssh/known_hosts" ] || (umask 077; : > "$AI/ssh/known_hosts")
+
+if [ ! -f "$KEY" ]; then
+  ssh-keygen -q -t ed25519 -N "" -C "agent@$HOST $(date +%F)" -f "$KEY" </dev/null
+  done_ "created SSH key $KEY"
+fi
+chmod 600 "$KEY" "$KEY.pub"
+FP=$(ssh-keygen -lf "$KEY.pub" | awk '{print $2}')
+done_ "SSH key $FP"
+note "if not done yet, add it to Gitea's jasonlearst-agent account, titled \"agent-identity $HOST ($(date -r "$KEY" +%F))\"" \
+  "from your own terminal: tea api -X POST /admin/users/jasonlearst-agent/keys -f title=\"agent-identity $HOST ($(date -r "$KEY" +%F))\" -f key=\"\$(cat $KEY.pub)\" -F read_only=false" \
+  "and to any server the agent should reach"
+
+if [ ! -e "$AI/local.env" ]; then
+  (umask 077; cat > "$AI/local.env" <<'EOF'
+# Machine-local agent settings. chezmoi doesn't track this file, so the LAN
+# hostnames below never reach the public dotfiles repo.
+
+# Hosts agent-whoami checks SSH resolution for, besides github.com.
+AGENT_WHOAMI_HOSTS=""
+
+# Your Gitea's HTTPS URL, for agent-whoami's credential-helper check and
+# agent-setup's instructions.
+AGENT_GITEA_URL=""
+EOF
+)
+fi
+if [ -z "${AGENT_WHOAMI_HOSTS:-}" ] || [ -z "${AGENT_GITEA_URL:-}" ]; then
+  todo "fill in $AI/local.env (your Gitea SSH host and URL)"
+else
+  done_ "local.env: checks $AGENT_WHOAMI_HOSTS, Gitea $AGENT_GITEA_URL"
+fi
+
+PEM="$AI/github-app/private-key.pem"
+if [ -s "$PEM" ]; then
+  chmod 600 "$PEM"
+  done_ "GitHub App key SHA256:$(openssl rsa -in "$PEM" -pubout -outform DER 2>/dev/null | openssl sha256 -binary | openssl base64)"
+else
+  todo "GitHub App key for this machine" \
+    "github.com/settings/apps/$SLUG → Private keys → Generate a private key, then:" \
+    "mv ~/Downloads/$SLUG.*.private-key.pem $PEM && chmod 600 $PEM" \
+    "and add its fingerprint (re-run agent-setup to see it) to your machine inventory in 1Password"
+fi
+
+if [ -s "$AI/railway/api-token" ]; then
+  chmod 600 "$AI/railway/api-token"
+  done_ "Railway token present"
+else
+  todo "Railway workspace token for this machine" \
+    "Railway → Account Settings → Tokens → name \"jasonlearst-agent $HOST\", workspace Delvelop's Projects; copy it, then:" \
+    "(umask 077; pbpaste | tr -d '[:space:]' > $AI/railway/api-token); pbcopy </dev/null"
+fi
+
+if grep -qs 'token:' "$AI/xdg/tea/config.yml"; then
+  chmod 600 "$AI/xdg/tea/config.yml"
+  done_ "Gitea login: $(awk '/^ *- name:/{n=$3} /^ *user:/{print n" as "$2; exit}' "$AI/xdg/tea/config.yml")"
+else
+  todo "Gitea API token for this machine" \
+    "$GITEA → (signed in as jasonlearst-agent) Settings → Applications → token \"jasonlearst-agent $HOST\"," \
+    "scopes write:repository, write:issue, write:package, read:user; copy it, then:" \
+    "agent-run tea login add --name claude --url $GITEA --token \"\$(pbpaste)\"; pbcopy </dev/null"
+fi
+
+mcp() {  # name: that MCP server's command line, if configured
+  python3 -I -c 'import json, os, sys
+try:
+    s = json.load(open(os.path.expanduser("~/.claude.json"))).get("mcpServers", {}).get(sys.argv[1])
+    if s: print(" ".join([s.get("command", "")] + s.get("args", [])))
+except Exception:
+    pass' "$1" 2>/dev/null
+}
+railway_mcp=$(mcp railway)
+if [[ "$railway_mcp" == */agent-run\ railway\ mcp ]]; then
+  done_ "Claude Code's railway MCP server runs as the agent"
+elif command -v claude >/dev/null 2>&1; then
+  todo "point Claude Code's railway MCP server at the agent" \
+    "claude mcp remove railway -s user 2>/dev/null; claude mcp add railway -s user -- $AI/bin/agent-run railway mcp"
+fi
+gitea_mcp=$(mcp gitea)
+if [[ "$gitea_mcp" == */agent-run\ */agent-gitea-mcp\ * ]]; then
+  done_ "Claude Code's gitea MCP server uses this machine's token"
+elif [ -n "$gitea_mcp" ]; then
+  todo "run Claude Code's gitea MCP server with this machine's token, not a copy in ~/.claude.json" \
+    "claude mcp remove gitea -s user; claude mcp add gitea -s user -- $AI/bin/agent-run $AI/bin/agent-gitea-mcp <path to gitea-mcp> -t stdio --host $GITEA"
+fi
+
+echo
+if [ $todos -eq 0 ]; then
+  echo "Nothing left to do. Check with: agent-run agent-whoami"
+else
+  echo "$todos step(s) left. Re-run agent-setup to check; then: agent-run agent-whoami"
+fi

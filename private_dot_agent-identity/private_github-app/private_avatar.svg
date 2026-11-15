@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3442"/><stop offset="1" stop-color="#141a23"/>
+    </linearGradient>
+    <radialGradient id="screen" cx="0.5" cy="0.45" r="0.72">
+      <stop offset="0" stop-color="#0f2a19"/><stop offset="1" stop-color="#030a06"/>
+    </radialGradient>
+    <pattern id="scan" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="3" fill="#ffffff" opacity="0.045"/>
+    </pattern>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="screenclip"><rect x="84" y="144" width="344" height="280" rx="48"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#frame)"/>
+  <line x1="256" y1="126" x2="256" y2="88" stroke="#3b4656" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="256" cy="72" r="24" fill="#3b4656"/>
+  <circle cx="256" cy="72" r="17" fill="#4dff9a" filter="url(#glow)"/>
+  <rect x="64" y="124" width="384" height="320" rx="66" fill="#3b4656"/>
+  <rect x="84" y="144" width="344" height="280" rx="48" fill="url(#screen)"/>
+  <g clip-path="url(#screenclip)"><rect x="84" y="144" width="344" height="280" fill="url(#scan)"/></g>
+  <g fill="none" stroke="#4dff9a" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <polyline points="170,218 230,264 170,310"/><rect x="282" y="222" width="56" height="88" rx="10" fill="#4dff9a" stroke="none"/><path d="M 222 360 Q 256 384 290 360"/>
+  </g>
+</svg>

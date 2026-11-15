@@ -1,0 +1,212 @@
+#!/bin/bash
+# agent-github-app: GitHub access for the agent identity, through its GitHub App.
+# Mints one-hour installation tokens from the app's private key, and only for
+# the accounts listed in GITHUB_APP_OWNERS.
+#
+#   agent-github-app token [owner]        print a token for owner's installation
+#   agent-github-app git-credential get   git credential helper (github.com, HTTPS)
+#   agent-github-app gh [args...]         run gh with a token for the owner it targets
+#   agent-github-app installations        list every installation; flags strangers'
+#   agent-github-app uninstall <id>       remove an installation
+#   agent-github-app bot-id               print the bot user's ID
+#
+# Settings live in ~/.agent-identity/github-app/app.env (written by the setup
+# wizard). Tokens are cached there under cache/ until five minutes before expiry.
+
+set -euo pipefail
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+APP_DIR="$AI/github-app"
+CACHE="$APP_DIR/cache"
+API=https://api.github.com
+REAL_GH=/opt/homebrew/bin/gh
+
+die() { echo "agent-github-app: $*" >&2; exit 1; }
+
+[ -r "$APP_DIR/app.env" ] || die "no $APP_DIR/app.env; run the GitHub App wizard first"
+# shellcheck disable=SC1091
+. "$APP_DIR/app.env"
+: "${GITHUB_APP_ID:?missing from app.env}" "${GITHUB_APP_SLUG:?missing from app.env}"
+: "${GITHUB_APP_KEY_FILE:=$APP_DIR/private-key.pem}"
+: "${GITHUB_APP_OWNERS:?missing from app.env (space-separated accounts the agent may act in)}"
+: "${GITHUB_APP_DEFAULT_OWNER:=${GITHUB_APP_OWNERS%% *}}"
+
+lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
+
+allowed() {
+  local o
+  for o in $GITHUB_APP_OWNERS; do
+    [ "$(lower "$o")" = "$(lower "$1")" ] && return 0
+  done
+  return 1
+}
+
+b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+
+jwt() {
+  [ -r "$GITHUB_APP_KEY_FILE" ] || die "can't read the private key at $GITHUB_APP_KEY_FILE"
+  local now h p
+  now=$(date +%s)
+  h=$(printf '{"alg":"RS256","typ":"JWT"}' | b64url)
+  p=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' $((now - 60)) $((now + 540)) "$GITHUB_APP_ID" | b64url)
+  printf '%s.%s.%s' "$h" "$p" "$(printf '%s.%s' "$h" "$p" | openssl dgst -sha256 -sign "$GITHUB_APP_KEY_FILE" | b64url)"
+}
+
+api() {  # METHOD PATH BEARER
+  curl -fsS -X "$1" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    -H "Authorization: Bearer $3" \
+    "$API$2"
+}
+
+installation_id() {  # OWNER
+  local f="$CACHE/$(lower "$1").installation" id
+  if [ -s "$f" ]; then cat "$f"; return; fi
+  id=$(api GET "/app/installations?per_page=100" "$(jwt)" | python3 -I -c '
+import json, sys
+want = sys.argv[1].lower()
+print(next((str(i["id"]) for i in json.load(sys.stdin) if i["account"]["login"].lower() == want), ""))' "$1")
+  [ -n "$id" ] || die "the app isn't installed on $1"
+  (umask 077; mkdir -p "$CACHE"; printf '%s\n' "$id" > "$f")
+  printf '%s\n' "$id"
+}
+
+mint() {  # OWNER: print "EXPIRES TOKEN"
+  api POST "/app/installations/$(installation_id "$1")/access_tokens" "$(jwt)" |
+    python3 -I -c 'import json, sys; d = json.load(sys.stdin); print(d["expires_at"], d["token"])'
+}
+
+token() {  # OWNER
+  local owner f exp tok line
+  owner=$(lower "${1:-$GITHUB_APP_DEFAULT_OWNER}")
+  allowed "$owner" || die "$owner isn't one of the app's accounts ($GITHUB_APP_OWNERS)"
+  f="$CACHE/$owner.token"
+  if [ -s "$f" ]; then
+    read -r exp tok < "$f"
+    if [[ "$exp" > "$(date -u -v+5M +%Y-%m-%dT%H:%M:%SZ)" ]]; then
+      printf '%s\n' "$tok"
+      return
+    fi
+  fi
+  # A cached installation ID goes stale if the app was reinstalled; retry once.
+  line=$(mint "$owner" 2>/dev/null) || { rm -f "$CACHE/$owner.installation"; line=$(mint "$owner"); }
+  (umask 077; mkdir -p "$CACHE"; printf '%s\n' "$line" > "$f")
+  printf '%s\n' "${line#* }"
+}
+
+git_credential() {
+  [ "${1:-}" = get ] || exit 0
+  local line protocol="" host="" path="" owner tok
+  while IFS= read -r line && [ -n "$line" ]; do
+    case $line in
+      protocol=*) protocol=${line#*=} ;;
+      host=*) host=${line#*=} ;;
+      path=*) path=${line#*=} ;;
+    esac
+  done
+  [ "$protocol" = https ] && [ "$host" = github.com ] || exit 0
+  owner=${path%%/*}
+  [ -n "$owner" ] || owner=$GITHUB_APP_DEFAULT_OWNER
+  if ! allowed "$owner"; then
+    echo "agent-github-app: $owner isn't one of the app's accounts, so git gets no credentials" >&2
+    exit 0
+  fi
+  tok=$(token "$owner") || exit 0
+  printf 'username=x-access-token\npassword=%s\n' "$tok"
+}
+
+gh_owner() {  # gh args: the account the command targets
+  local a prev="" owner="${AGENT_GITHUB_OWNER:-}" path url
+  local -a pos=()
+  for a in "$@"; do
+    if [ -z "$owner" ]; then
+      case $prev in -R|--repo|--owner) owner=$a ;; esac
+      case $a in
+        --repo=*) owner=${a#--repo=} ;;
+        --owner=*) owner=${a#--owner=} ;;
+        https://github.com/*/*) owner=$a ;;
+      esac
+    fi
+    case $a in -*) ;; *) pos+=("$a") ;; esac
+    prev=$a
+  done
+  # gh repo view OWNER/REPO, gh api repos/OWNER/... and the like.
+  if [ -z "$owner" ] && [ ${#pos[@]} -gt 1 ]; then
+    case ${pos[0]} in
+      repo)
+        for a in "${pos[@]:2}"; do case $a in */*) owner=$a; break ;; esac; done ;;
+      api)
+        for a in "${pos[@]:1}"; do
+          path=${a#/}
+          case $path in repos/*/*|orgs/*|users/*) owner=${path#*/}; break ;; esac
+        done ;;
+    esac
+  fi
+  owner=${owner#https://github.com/}
+  owner=${owner#github.com/}
+  owner=${owner%%/*}
+  [ -n "$owner" ] || owner=${GH_REPO:-}
+  owner=${owner%%/*}
+  if [ -z "$owner" ]; then
+    url=$(git remote get-url origin 2>/dev/null || true)
+    case $url in
+      *github.com[:/]*) owner=${url#*github.com[:/]}; owner=${owner%%/*} ;;
+    esac
+  fi
+  printf '%s\n' "${owner:-$GITHUB_APP_DEFAULT_OWNER}"
+}
+
+run_gh() {
+  local owner
+  owner=$(gh_owner "$@")
+  # Anyone else's repos are only readable, so a token for the default account will do.
+  allowed "$owner" || owner=$GITHUB_APP_DEFAULT_OWNER
+  GH_TOKEN=$(token "$owner") || exit 1
+  export GH_TOKEN
+  exec "$REAL_GH" "$@"
+}
+
+installations() {
+  api GET "/app/installations?per_page=100" "$(jwt)" | python3 -I -c '
+import json, sys
+allowed = {o.lower() for o in sys.argv[1].split()}
+rows = json.load(sys.stdin)
+print("%-12s %-28s %-13s %s" % ("ID", "ACCOUNT", "TYPE", "REPOS"))
+for i in rows:
+    a = i["account"]
+    flag = "" if a["login"].lower() in allowed else "   <- NOT YOURS: agent-github-app uninstall %d" % i["id"]
+    print("%-12s %-28s %-13s %s%s" % (i["id"], a["login"], a["type"], i.get("repository_selection", ""), flag))
+strangers = [i for i in rows if i["account"]["login"].lower() not in allowed]
+sys.exit(3 if strangers else 0)' "$GITHUB_APP_OWNERS"
+}
+
+uninstall() {
+  [[ "${1:-}" =~ ^[0-9]+$ ]] || die "usage: agent-github-app uninstall <installation-id>"
+  if [ -t 0 ]; then
+    printf 'Remove installation %s of %s? [y/N] ' "$1" "$GITHUB_APP_SLUG"
+    read -r reply
+    [[ "$reply" =~ ^[Yy] ]] || exit 1
+  fi
+  api DELETE "/app/installations/$1" "$(jwt)" >/dev/null
+  rm -f "$CACHE"/*.installation
+  echo "removed installation $1"
+}
+
+bot_id() {
+  local json
+  json=$(curl -fsS "$API/users/${GITHUB_APP_SLUG}%5Bbot%5D" 2>/dev/null) ||
+    json=$(curl -fsS -H "Authorization: Bearer $(token)" "$API/users/${GITHUB_APP_SLUG}%5Bbot%5D")
+  printf '%s' "$json" | python3 -I -c 'import json, sys; print(json.load(sys.stdin)["id"])'
+}
+
+cmd=${1:-}
+[ $# -eq 0 ] || shift
+case $cmd in
+  token) token "${1:-}" ;;
+  git-credential) git_credential "${1:-}" ;;
+  gh) run_gh "$@" ;;
+  installations) installations ;;
+  uninstall) uninstall "${1:-}" ;;
+  bot-id) bot_id ;;
+  *) sed -n '2,13s/^# \{0,1\}//p' "$0"; exit 2 ;;
+esac

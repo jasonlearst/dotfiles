@@ -27,6 +27,26 @@ IMPROVEMENTS.md
 .claude
 {{ end }}
 
+# The agent identity is for personal Macs where agents run. Its per-machine
+# credentials and state are never in the source; these entries stop a
+# `chezmoi add` from sweeping them in.
+{{ if or (ne .chezmoi.os "darwin") .isWork }}
+.agent-identity
+.local/bin/agent-*
+.chezmoiscripts/darwin/*agent-identity-setup*
+{{ end }}
+.agent-identity/ssh/id_ed25519_agent_*
+.agent-identity/ssh/known_hosts
+.agent-identity/github-app/private-key.pem
+.agent-identity/github-app/cache
+.agent-identity/railway/api-token
+.agent-identity/xdg/tea/config.yml
+.agent-identity/local.env
+.agent-identity/backup
+.agent-identity/gcloud/*
+.agent-identity/gnupg/*
+.agent-identity/zsh/.zcompdump*
+
 # ~/.claude: only CLAUDE.md and the skills/ folders added by name are tracked.
 # Everything else is machine-local, churny, or private (transcripts, sessions,
 # tokens) and must never sync. chezmoi only manages files you explicitly `chezmoi add`, so these

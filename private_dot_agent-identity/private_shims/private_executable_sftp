@@ -1,0 +1,3 @@
+#!/bin/bash
+# Plain sftp would read ~/.ssh/config and offer the 1Password agent.
+exec /usr/bin/sftp -F "${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}/ssh/config" "$@"

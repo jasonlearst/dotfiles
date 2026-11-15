@@ -1,0 +1,267 @@
+#!/bin/bash
+# agent-whoami [host...]: show, offline, which identity this shell would use
+# for SSH, git and each tool, and fail loudly if any of it is the personal one.
+# It checks the shell as it is, so run it inside an agent session or as
+# `agent-run agent-whoami`. It never prints a token or a private key.
+
+set -u
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+# Machine-local, kept out of chezmoi so LAN hostnames stay private.
+# shellcheck disable=SC1091
+[ -r "$AI/local.env" ] && . "$AI/local.env"
+HOSTS=("$@")
+# shellcheck disable=SC2206
+[ ${#HOSTS[@]} -gt 0 ] || HOSTS=(github.com ${AGENT_WHOAMI_HOSTS:-})
+
+fails=0
+if [ -t 1 ]; then R=$'\e[1;31m' G=$'\e[32m' Y=$'\e[33m' B=$'\e[1m' N=$'\e[0m'; else R='' G='' Y='' B='' N=''; fi
+ok()      { printf '  %sok%s    %s\n' "$G" "$N" "$*"; }
+fail()    { printf '  %sFAIL%s  %s\n' "$R" "$N" "$*"; fails=$((fails + 1)); }
+warn()    { printf '  %swarn%s  %s\n' "$Y" "$N" "$*"; }
+note()    { printf '        %s\n' "$*"; }
+section() { printf '\n%s%s%s\n' "$B" "$*" "$N"; }
+in_ai()   { case "$1" in "$AI"/*) return 0 ;; *) return 1 ;; esac; }
+expand()  { case "$1" in "~/"*) printf '%s\n' "$HOME/${1#\~/}" ;; *) printf '%s\n' "$1" ;; esac; }
+
+personal_name=$(git config --file "$HOME/.gitconfig" user.name 2>/dev/null)
+personal_email=$(git config --file "$HOME/.gitconfig" user.email 2>/dev/null)
+agent_name=$(git config --file "$AI/git/config" user.name 2>/dev/null)
+agent_email=$(git config --file "$AI/git/config" user.email 2>/dev/null)
+
+printf '%sagent-whoami%s on %s, in %s\n' "$B" "$N" "$(scutil --get LocalHostName 2>/dev/null || hostname -s)" "$PWD"
+
+section "Session"
+if [ "${AGENT_IDENTITY:-}" = 1 ]; then ok "agent identity is active (AGENT_IDENTITY=1)"; else fail "agent identity is not active in this shell"; fi
+first=${PATH%%:*}
+if [ "$first" = "$AI/shims" ]; then ok "PATH starts with $AI/shims"; else fail "PATH starts with $first, so ssh, tea and op run unwrapped"; fi
+leaked=""
+for v in ${AGENT_IDENTITY_UNSET:-GH_TOKEN GITHUB_TOKEN NPM_TOKEN NODE_AUTH_TOKEN RAILWAY_TOKEN SOPS_AGE_KEY_CMD}; do
+  case $v in SSH_AUTH_SOCK|SSH_AGENT_PID) continue ;; esac
+  [ -z "${!v:-}" ] || leaked="$leaked $v"
+done
+if [ -z "$leaked" ]; then ok "no personal credential variables are set"; else fail "set, and should not be:$leaked"; fi
+others=$(env | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' \
+  | grep -E 'TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|ACCESS_KEY|PRIVATE_KEY|CREDENTIAL' \
+  | grep -vxE 'RAILWAY_API_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|OP_SERVICE_ACCOUNT_TOKEN|CLAUDE_CODE_[A-Z_]*' | paste -sd' ' -)
+[ -z "$others" ] || warn "other credential-looking variables are set: $others (make sure they're the agent's)"
+
+section "SSH"
+if [ -n "${SSH_AUTH_SOCK+x}" ]; then fail "SSH_AUTH_SOCK is set ($SSH_AUTH_SOCK), so that agent's keys can be offered"; else ok "SSH_AUTH_SOCK is unset"; fi
+[ -z "${SSH_AGENT_PID:-}" ] || fail "SSH_AGENT_PID is set ($SSH_AGENT_PID)"
+ssh_bin=$(command -v ssh)
+if [ "$ssh_bin" = "$AI/shims/ssh" ]; then ok "ssh runs $ssh_bin"; else fail "ssh runs $ssh_bin, which reads ~/.ssh/config and the 1Password agent"; fi
+git_ssh=${GIT_SSH_COMMAND:-$(git config core.sshCommand 2>/dev/null)}
+git_ssh=${git_ssh:-ssh}
+note "git runs: $git_ssh"
+
+check_ssh() {  # label host via
+  local label=$1 host=$2 via=$3 out files f agent only bad=0 desc=""
+  if [ "$via" = git ]; then out=$(sh -c "$git_ssh -G \"\$1\"" sh "$host" 2>&1); else out=$(ssh -G "$host" 2>&1); fi || {
+    fail "$label: ssh -G failed: $out"; return; }
+  files=$(printf '%s\n' "$out" | awk '$1=="identityfile"{print $2}' | while read -r f; do expand "$f"; done | sort -u)
+  agent=$(printf '%s\n' "$out" | awk '$1=="identityagent"{print $2}')
+  only=$(printf '%s\n' "$out" | awk '$1=="identitiesonly"{print $2}')
+  for f in $files; do
+    if in_ai "$f"; then
+      desc="$desc ${f##*/} ($(ssh-keygen -lf "$f.pub" 2>/dev/null | awk '{print $2}'))"
+    else
+      fail "$label: would offer $f"; bad=1
+    fi
+  done
+  [ -n "$files" ] || { fail "$label: no IdentityFile, so ssh tries the default ~/.ssh keys"; bad=1; }
+  [ "$agent" = none ] || { fail "$label: IdentityAgent is ${agent:-the SSH_AUTH_SOCK agent}"; bad=1; }
+  [ "$only" = yes ] || { fail "$label: IdentitiesOnly is ${only:-no}"; bad=1; }
+  [ $bad = 1 ] || ok "$label: offers only$desc; no agent"
+}
+for host in "${HOSTS[@]}"; do
+  check_ssh "ssh $host" "$host" shell
+  check_ssh "git → $host" "$host" git
+done
+
+section "Git"
+if in_ai "${GIT_CONFIG_GLOBAL:-}"; then ok "global config: $GIT_CONFIG_GLOBAL"; else fail "global config: ${GIT_CONFIG_GLOBAL:-~/.gitconfig} (the personal one)"; fi
+if [ "${GIT_CONFIG_NOSYSTEM:-}" = 1 ]; then ok "system config skipped, so the osxkeychain helper is off"; else fail "system config is read, and it adds credential.helper=osxkeychain"; fi
+bot_email=$(sed -n "s/^GITHUB_APP_BOT_EMAIL='\(.*\)'\$/\1/p" "$AI/github-app/app.env" 2>/dev/null)
+if git config --get-regexp '^remote\..*\.url$' 2>/dev/null | grep -q github.com && [ -n "$bot_email" ]; then
+  expect_email=$bot_email
+  where="this repo is on GitHub, so commits use the bot's no-reply address and GitHub links them to the bot"
+else
+  expect_email=$agent_email
+  where="this repo isn't on GitHub, so commits use $agent_email (Gitea links them to the agent's account)"
+fi
+git_bin=$(command -v git)
+if [ "$git_bin" = "$AI/shims/git" ]; then ok "git runs $git_bin, which picks the commit email per repo"; else warn "git runs $git_bin, so commits in GitHub repos won't link to the bot"; fi
+note "$where"
+for role in AUTHOR COMMITTER; do
+  label=$(printf '%s' "$role" | tr '[:upper:]' '[:lower:]')
+  ident=$(git var "GIT_${role}_IDENT" 2>&1) || { fail "$label: $ident"; continue; }
+  ident=${ident% * *}
+  name=${ident% <*}
+  email=${ident##*<}; email=${email%>}
+  if [ "$email" = "$personal_email" ] || [ "$name" = "$personal_name" ]; then
+    fail "$label: $ident is the personal identity"
+  elif [ "$email" != "$expect_email" ] || [ "$name" != "$agent_name" ]; then
+    fail "$label: $ident, but here the agent is $agent_name <$expect_email>"
+  else
+    ok "$label: $ident"
+  fi
+done
+note "user.email comes from: $(git config --show-scope --show-origin --get user.email 2>/dev/null | tr '\t' ' ')"
+
+helpers_for() {  # url: the credential helpers git would run for it, in order
+  git config --list --show-scope 2>/dev/null | awk -F'\t' -v url="$1" '
+    { kv = $2; i = index(kv, "="); k = (i ? substr(kv, 1, i - 1) : kv); v = (i ? substr(kv, i + 1) : "")
+      if (k == "credential.helper") m = 1
+      else if (k ~ /^credential\..+\.helper$/) m = (index(url, substr(k, 12, length(k) - 18)) == 1)
+      else m = 0
+      if (!m) next
+      if (v == "") n = 0; else h[++n] = v }
+    END { for (j = 1; j <= n; j++) print h[j] }'
+}
+for url in https://github.com ${AGENT_GITEA_URL:-}; do
+  hs=$(helpers_for "$url" | paste -sd, -)
+  case "$hs" in
+    *osxkeychain*|*store*|*manager*|*1[Pp]assword*|*op-*) fail "credential helpers for $url: $hs (stored personal credentials)" ;;
+    "") ok "credential helpers for $url: none" ;;
+    *) ok "credential helpers for $url: $hs" ;;
+  esac
+done
+sign=$(git config --get commit.gpgSign 2>/dev/null)
+signer=$(git config --get gpg.ssh.program 2>/dev/null)
+case "$signer" in
+  *op-ssh-sign*|*1Password*) fail "gpg.ssh.program is 1Password's signer ($signer)" ;;
+  *) if [ "$sign" = true ]; then fail "commit.gpgSign is true"; else ok "commit signing: ${sign:-off}; ssh signer: ${signer:-default}"; fi ;;
+esac
+
+section "GitHub (through the agent's GitHub App)"
+for v in GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN; do
+  [ -z "${!v:-}" ] || fail "$v is set, and gh would use it instead of the app"
+done
+app_env="$AI/github-app/app.env"
+if [ ! -r "$app_env" ]; then
+  fail "no $app_env, so the agent has no GitHub identity"
+else
+  # shellcheck disable=SC1090
+  . "$app_env"
+  key=${GITHUB_APP_KEY_FILE:-$AI/github-app/private-key.pem}
+  mode=$(stat -f %Lp "$key" 2>/dev/null || echo missing)
+  if [ "$mode" = 600 ]; then ok "app ${GITHUB_APP_SLUG:-?} (ID ${GITHUB_APP_ID:-?}); private key at mode 600"; else fail "private key $key: mode $mode, should be 600"; fi
+  note "acts in: ${GITHUB_APP_OWNERS:-nothing} (default ${GITHUB_APP_DEFAULT_OWNER:-none})"
+  for o in ${GITHUB_APP_OWNERS:-}; do
+    f="$AI/github-app/cache/$(printf '%s' "$o" | tr '[:upper:]' '[:lower:]').token"
+    if [ -s "$f" ]; then note "$o: cached token valid until $(cut -d' ' -f1 "$f")"; else note "$o: no cached token yet (minted on first use)"; fi
+  done
+  note "pushes, PRs, issues and comments show as ${GITHUB_APP_BOT_LOGIN:-the bot}"
+fi
+gh_bin=$(command -v gh)
+if [ "$gh_bin" = "$AI/shims/gh" ]; then ok "gh runs $gh_bin, with an app token for the account it targets"; else fail "gh runs ${gh_bin:-nothing}, which uses the personal login"; fi
+rew=$(git ls-remote --get-url git@github.com:owner/repo.git 2>/dev/null)
+case $rew in
+  https://github.com/*) ok "git@github.com remotes are rewritten to HTTPS, through the app" ;;
+  *) fail "git@github.com remotes stay SSH ($rew), which the app can't serve" ;;
+esac
+if ! in_ai "${GH_CONFIG_DIR:-}"; then
+  fail "gh config: ${GH_CONFIG_DIR:-~/.config/gh} (the personal login)"
+else
+  hosts="$GH_CONFIG_DIR/hosts.yml"
+  cfg_tok=$(awk '/^github\.com:/{h=1; next} /^[^ ]/{h=0} h && /^    oauth_token:/{print $2; exit}' "$hosts" 2>/dev/null)
+  if [ -z "$cfg_tok" ]; then
+    fail "gh config: $hosts has no placeholder token, so plain gh falls back to the personal keychain token"
+  else
+    gh_tok=$(env -u GH_TOKEN -u GITHUB_TOKEN /opt/homebrew/bin/gh auth token -h github.com 2>/dev/null)
+    if [ "$gh_tok" != "$cfg_tok" ]; then
+      fail "plain gh (bypassing the shim) resolves a token that isn't the agent's placeholder"
+    else
+      ok "plain gh, bypassing the shim, finds only a placeholder, never the personal keychain token"
+    fi
+    unset gh_tok
+  fi
+  unset cfg_tok
+fi
+
+section "Gitea CLI (tea)"
+tea_bin=$(command -v tea)
+tea_cfg="$AI/xdg/tea/config.yml"
+if [ "$tea_bin" != "$AI/shims/tea" ]; then
+  fail "tea runs ${tea_bin:-nothing}, which reads the personal logins"
+else
+  users=$(awk '/^ *user:/{print $2}' "$tea_cfg" 2>/dev/null | paste -sd, -)
+  personal_tea=$(awk '/^ *- name:/{d=0} /^ *default: true/{d=1} /^ *user:/{if (d) print $2}' \
+    "$HOME/Library/Application Support/tea/config.yml" 2>/dev/null)
+  if [ -n "$personal_tea" ] && printf '%s\n' "$users" | tr , '\n' | grep -qxF "$personal_tea"; then
+    fail "tea logins ($users) include the personal login $personal_tea"
+  else
+    ok "config: $tea_cfg; logins as: ${users:-none}"
+  fi
+fi
+
+section "Railway CLI"
+[ -z "${RAILWAY_TOKEN:-}" ] || fail "RAILWAY_TOKEN is set, and railway would use it"
+if [ -z "${RAILWAY_API_TOKEN:-}" ]; then
+  fail "RAILWAY_API_TOKEN is unset, so railway uses the personal login in ~/.railway"
+elif [ "$RAILWAY_API_TOKEN" = agent-identity-has-no-railway-token ]; then
+  ok "not signed in (a placeholder RAILWAY_API_TOKEN keeps railway off ~/.railway)"
+elif [ -r "$AI/railway/api-token" ] && [ "$RAILWAY_API_TOKEN" = "$(cat "$AI/railway/api-token")" ]; then
+  ok "token from $AI/railway/api-token"
+else
+  fail "RAILWAY_API_TOKEN is not the agent's token"
+fi
+
+section "Google Cloud (gcloud)"
+if in_ai "${CLOUDSDK_CONFIG:-}" && ! command -v gcloud >/dev/null 2>&1; then
+  ok "config: $CLOUDSDK_CONFIG (gcloud isn't installed here)"
+elif in_ai "${CLOUDSDK_CONFIG:-}"; then
+  dir=$(gcloud info --format='value(config.paths.global_config_dir)' 2>/dev/null)
+  acct=$(gcloud config list --format='value(core.account)' 2>/dev/null)
+  if [ "$dir" = "$CLOUDSDK_CONFIG" ]; then ok "config: $dir; account: ${acct:-none}"; else fail "gcloud resolves ${dir:-nothing}, not $CLOUDSDK_CONFIG"; fi
+else
+  fail "config: ${CLOUDSDK_CONFIG:-~/.config/gcloud} (the personal credentials)"
+fi
+if in_ai "${GOOGLE_APPLICATION_CREDENTIALS:-}"; then
+  [ -e "$GOOGLE_APPLICATION_CREDENTIALS" ] && st="" || st=" (not created yet)"
+  ok "application default credentials: $GOOGLE_APPLICATION_CREDENTIALS$st"
+else
+  fail "application default credentials: ${GOOGLE_APPLICATION_CREDENTIALS:-~/.config/gcloud/application_default_credentials.json, the personal ones}"
+fi
+
+section "npm, pnpm, yarn"
+if ! command -v npm >/dev/null 2>&1; then
+  if in_ai "${NPM_CONFIG_USERCONFIG:-}"; then ok "userconfig: $NPM_CONFIG_USERCONFIG (npm isn't installed here)"; else fail "NPM_CONFIG_USERCONFIG isn't the agent's"; fi
+else
+  uc=$(npm config get userconfig 2>/dev/null)
+  if in_ai "$uc"; then ok "npm userconfig (pnpm and yarn use it too): $uc"; else fail "npm userconfig: ${uc:-unknown} (the personal one)"; fi
+fi
+[ ! -e "$HOME/.npmrc" ] || warn "~/.npmrc exists, and bun may read it even here"
+
+section "Docker"
+if in_ai "${DOCKER_CONFIG:-}"; then
+  if grep -qE 'credsStore|credHelpers' "$DOCKER_CONFIG/config.json" 2>/dev/null; then
+    fail "$DOCKER_CONFIG/config.json sends logins to a credential store (the keychain)"
+  else
+    ok "config: $DOCKER_CONFIG"
+  fi
+else
+  fail "config: ${DOCKER_CONFIG:-~/.docker} (the personal one)"
+fi
+
+section "GnuPG"
+if in_ai "${GNUPGHOME:-}"; then
+  ok "home: $GNUPGHOME; secret keys: $(ls "$GNUPGHOME/private-keys-v1.d" 2>/dev/null | wc -l | tr -d ' ')"
+else
+  fail "home: ${GNUPGHOME:-~/.gnupg} (the personal keys)"
+fi
+
+section "1Password CLI (op)"
+op_bin=$(command -v op)
+if [ "$op_bin" = "$AI/shims/op" ]; then
+  if [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then ok "op runs through the shim, with a service account"; else ok "op is blocked (no service account), so it can't open the personal vaults"; fi
+else
+  fail "op runs ${op_bin:-nothing}, which opens the personal vaults through the 1Password app"
+fi
+
+echo
+if [ $fails -gt 0 ]; then
+  printf '%sAGENT-WHOAMI: %d CHECK(S) FAILED. This shell can still act as the personal identity.%s\n' "$R" "$fails" "$N" >&2
+  exit 1
+fi
+printf '%sAll checks passed: this shell uses only the agent identity.%s\n' "$G" "$N"

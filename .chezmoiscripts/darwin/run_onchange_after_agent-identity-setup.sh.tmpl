@@ -1,0 +1,3 @@
+#!/bin/sh
+# Runs again whenever agent-setup changes: {{ include "private_dot_agent-identity/private_bin/private_executable_agent-setup" | sha256sum }}
+exec "$HOME/.agent-identity/bin/agent-setup"

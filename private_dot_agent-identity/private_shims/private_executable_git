@@ -1,0 +1,54 @@
+#!/bin/bash
+# git with the agent's commit email picked per repo: the GitHub App bot's
+# no-reply address when a remote is on GitHub, so GitHub links the commit to
+# the bot; otherwise the agent's own address from git/config, so Gitea never
+# sees a github.com address. Forced like activate's, so a repo's own
+# user.email still can't win.
+
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+
+real=""
+IFS=: read -r -a dirs <<< "$PATH"
+for d in "${dirs[@]}"; do
+  [ "$d" = "$AI/shims" ] && continue
+  if [ -x "$d/git" ]; then real="$d/git"; break; fi
+done
+[ -n "$real" ] || { echo "git: no git on PATH besides $AI/shims" >&2; exit 127; }
+
+# The global options that say which repo this is: -C, --git-dir, --work-tree.
+loc=()
+args=("$@")
+i=0
+while [ $i -lt ${#args[@]} ]; do
+  case ${args[$i]} in
+    -C|--git-dir|--work-tree) loc+=("${args[$i]}" "${args[$((i + 1))]}"); i=$((i + 2)) ;;
+    --git-dir=*|--work-tree=*) loc+=("${args[$i]}"); i=$((i + 1)) ;;
+    -c|--namespace|--config-env) i=$((i + 2)) ;;
+    -*) i=$((i + 1)) ;;
+    *) break ;;
+  esac
+done
+
+# Only commands that write commits or tags, or report the identity, need it.
+case ${args[$i]:-} in
+  commit|merge|pull|rebase|cherry-pick|revert|am|tag|stash|notes|commit-tree|replace|filter-branch|subtree|var|config) ;;
+  *) exec "$real" "$@" ;;
+esac
+
+urls=$("$real" "${loc[@]}" config --get-regexp '^remote\..*\.url$' 2>/dev/null)
+case $urls in
+  *github.com*)
+    email=$(sed -n "s/^GITHUB_APP_BOT_EMAIL='\(.*\)'\$/\1/p" "$AI/github-app/app.env" 2>/dev/null)
+    if [ -n "$email" ]; then
+      export GIT_AUTHOR_EMAIL="$email" GIT_COMMITTER_EMAIL="$email"
+      k=0
+      while [ $k -lt "${GIT_CONFIG_COUNT:-0}" ]; do
+        key="GIT_CONFIG_KEY_$k"
+        [ "${!key}" = user.email ] && export "GIT_CONFIG_VALUE_$k=$email"
+        k=$((k + 1))
+      done
+    fi
+    ;;
+esac
+
+exec "$real" "$@"

@@ -2,7 +2,7 @@
 
 The repo's `## Tasks` section names the forge, the repo slug and, on Gitea, the tea login. Below, `<repo>` is the slug, `<login>` the tea login, and `<base>` the Tasks section's base branch, or origin's default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, minus `origin/`) when it names none.
 
-On Gitea every command passes `--login <login>`, so issues, comments and PRs come from that account. `git push` still goes over SSH as the owner.
+On Gitea every command passes `--login <login>`, so issues, comments and PRs come from that account. `git push` goes over SSH as that account too: Claude Code runs every command under the agent identity in `~/.agent-identity`, whose SSH key belongs to it. The account needs write access to the repo.
 
 Pass long text through a file. For JSON bodies on Gitea, build them with `jq -n --rawfile body <file> '{body: $body}'` and pipe that to `tea api ... -d @-`.
 

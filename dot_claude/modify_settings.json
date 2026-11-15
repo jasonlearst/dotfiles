@@ -1,12 +1,16 @@
 #!/bin/sh
 # Adds the allow rules the /file-issue and /task skills need to settings.json, so auto mode's
-# classifier doesn't block their issue and PR writes. The rest of the file stays machine-local.
+# classifier doesn't block their issue and PR writes. Where ~/.agent-identity exists, also points
+# CLAUDE_ENV_FILE at it, so every Claude Code session runs as the agent. The rest stays machine-local.
 input="$(cat)"
 [ -n "$input" ] || input='{}'
-printf '%s\n' "$input" | jq '.permissions.allow = (((.permissions.allow // []) + [
+activate="$HOME/.agent-identity/activate"
+[ -f "$activate" ] || activate=""
+printf '%s\n' "$input" | jq --arg activate "$activate" '.permissions.allow = (((.permissions.allow // []) + [
   "Bash(gh pr create *)",
   "Bash(gh issue create *)",
   "Bash(tea pulls create --login claude *)",
   "Bash(tea issues create --login claude *)",
   "Bash(tea api --login claude *)"
-]) | reduce .[] as $rule ([]; if index([$rule]) then . else . + [$rule] end))'
+]) | reduce .[] as $rule ([]; if index([$rule]) then . else . + [$rule] end))
+| if $activate != "" then .env.CLAUDE_ENV_FILE = $activate else . end'

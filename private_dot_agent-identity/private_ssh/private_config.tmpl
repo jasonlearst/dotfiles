@@ -1,0 +1,22 @@
+# Agent identity SSH config. Always used with `ssh -F`, so ssh reads neither
+# ~/.ssh/config nor /etc/ssh/ssh_config. One key, no agents, no host entries.
+
+Host *
+  IdentityFile ~/.agent-identity/ssh/id_ed25519_agent_{{ .chezmoi.hostname }}
+  IdentitiesOnly yes
+  IdentityAgent none
+  AddKeysToAgent no
+  ForwardAgent no
+  UseKeychain no
+  PKCS11Provider none
+  CertificateFile none
+  PreferredAuthentications publickey
+  PasswordAuthentication no
+  KbdInteractiveAuthentication no
+  # Hosts already trusted in ~/.ssh/known_hosts are read, never written;
+  # new host keys go only to the agent's own file.
+  UserKnownHostsFile ~/.agent-identity/ssh/known_hosts ~/.ssh/known_hosts
+  StrictHostKeyChecking accept-new
+  UpdateHostKeys no
+  ControlMaster no
+  ControlPath none
