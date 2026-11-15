@@ -1,0 +1,6 @@
+{{- /* Homebrew's prefix on this Mac, or nothing when Homebrew isn't installed. */ -}}
+{{- if stat "/opt/homebrew/bin/brew" -}}
+/opt/homebrew
+{{- else if stat "/usr/local/bin/brew" -}}
+/usr/local
+{{- end -}}

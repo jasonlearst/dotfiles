@@ -1,10 +1,5 @@
 {{- /* Renders only where Homebrew is installed; elsewhere it's empty and chezmoi skips it. */ -}}
-{{- $prefix := "" -}}
-{{- if stat "/opt/homebrew/bin/brew" -}}
-{{-   $prefix = "/opt/homebrew" -}}
-{{- else if stat "/usr/local/bin/brew" -}}
-{{-   $prefix = "/usr/local" -}}
-{{- end -}}
+{{- $prefix := includeTemplate "homebrew-prefix" . | trim -}}
 {{- if $prefix -}}
 #!/bin/bash
 #
