@@ -4,8 +4,9 @@ Override per-project with a repo-level `CLAUDE.md`.
 
 ## Workflow
 - Ideas and bugs become issues with `/file-issue`. `/worktree <issue>` makes the
-  issue's worktree and opens it in its own Workbench tab, where `/task <issue>`
-  works it through to the hand-off.
+  issue's worktree, which Workbench lists under the repo's project by its branch.
+  A Claude tab opened there runs `/task <issue>`, which works it through to the
+  hand-off.
 - A repo's facts for those skills (forge, checks, owner tier, hand-off) are in
   the `## Tasks` section of its `CLAUDE.md`.
 - A session stays in the folder it started in, so each Workbench tab matches its
