@@ -30,7 +30,7 @@ The facts `/file-issue`, `/worktree` and `/task` need about this repo. The proce
 ### Working in a chezmoi source
 
 - Source names map to targets: `dot_` becomes `.`, `private_` and `executable_` set modes, `.tmpl` renders with chezmoi data, `modify_` filters the file already there, `symlink_` makes a link, and `.chezmoiscripts/` run on apply. `.chezmoiignore` gates targets by OS, `.isWork` and `.isWSL`. A new root file that isn't a dotfile, like `README.md` or this file, needs an entry there or it lands in `~`.
-- chezmoi's default source is the primary checkout, which stays on `main`, so pass `-S "$PWD"` to every chezmoi command in a worktree. `chezmoi -S "$PWD" cat <target>` prints a rendered file; run a script or fish function from that copy rather than applying it. `chezmoi -S "$PWD" add <file>` brings a live file into the branch.
+- chezmoi's default source is the primary checkout, which is back on `main` by the end of every turn: an edit branched in place there switches back once it's committed. In a worktree, pass `-S "$PWD"` to every chezmoi command. `chezmoi -S "$PWD" cat <target>` prints a rendered file; run a script or fish function from that copy rather than applying it. `chezmoi -S "$PWD" add <file>` brings a live file into the branch.
 - A task never runs `chezmoi apply`, `update`, `re-add`, `edit` or `init`: they write to the live home dir or the primary checkout. Applying belongs to the owner tier.
 
 ### Filing issues

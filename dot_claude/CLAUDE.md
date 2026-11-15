@@ -14,8 +14,16 @@ Override per-project with a repo-level `CLAUDE.md`.
   `EnterWorktree`.
 
 ## Branching
-- New work → new branch off `main`, in its own worktree for issue work. Never
-  commit to `main` directly.
+- Never commit to `main` directly. Every change gets a branch off `main`.
+- Use a worktree when the work has to stay checked out while it's in
+  progress: issue work (`/worktree`, `/task`), a change that spans several
+  turns before it's committed, or one to test from the branch before merging.
+  Also whenever the folder isn't clean on `main`, since that means someone
+  else is working there.
+- Otherwise branch in place: `git switch -c <branch>`, commit,
+  `git switch main`, all in the same turn. The branch waits to merge when
+  asked.
+- The user saying "use a worktree" or "do it here" overrides either way.
 - Branch: `<type>/<issue>-<descriptive-summary>` for issue work,
   `<type>/<descriptive-summary>` otherwise. The summary says what changes, in
   three to six words.
