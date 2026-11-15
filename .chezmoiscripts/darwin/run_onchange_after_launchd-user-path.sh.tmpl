@@ -1,0 +1,31 @@
+{{- /* Renders only where Homebrew is installed; elsewhere it's empty and chezmoi skips it. */ -}}
+{{- $prefix := includeTemplate "homebrew-prefix" . | trim -}}
+{{- if $prefix -}}
+#!/bin/bash
+#
+# Give apps opened from the Dock Homebrew on their PATH. launchd starts them
+# with /usr/bin:/bin:/usr/sbin:/sbin, so git hooks they run (git-lfs's, when
+# Workbench or Fork create a worktree) can't find Homebrew's tools.
+#
+# This only renders on Macs with Homebrew in {{ $prefix }}, so installing
+# Homebrew later makes the next `chezmoi apply` run it. It asks for sudo once
+# per Mac, then the Mac needs a restart.
+#
+# To undo: sudo rm /private/var/db/com.apple.xpc.launchd/config/user.plist,
+# then restart.
+
+set -eufo pipefail
+
+want="{{ $prefix }}/bin:{{ $prefix }}/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+conf=/private/var/db/com.apple.xpc.launchd/config/user.plist
+have=$(plutil -extract PathEnvironmentVariable raw "$conf" 2>/dev/null || true)
+[[ $have == "$want" ]] && exit 0
+
+if [[ ! -t 0 ]] && ! sudo -n true 2>/dev/null; then
+  echo "launchd user PATH needs sudo, and there's no terminal to ask in. From a terminal, run:" >&2
+  echo "  sudo launchctl config user path \"$want\"" >&2
+  exit 1
+fi
+sudo launchctl config user path "$want"
+echo "Apps opened from the Dock will get $want after you restart the Mac."
+{{- end }}

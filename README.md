@@ -4,6 +4,8 @@ These are my personal dotfiles.  I use these over multiple platforms and machine
 
 ## Installation
 
+On a Mac where you want the Brewfile's packages, install [Homebrew](https://brew.sh) first: chezmoi doesn't install it, and on Macs without it the apply skips the packages (and the Dock PATH below). Installing Homebrew later makes the next `chezmoi apply` catch up.
+
 The below command installs chezmoi and initializes the dotfiles. See: [chezmoi One-line binary install](https://www.chezmoi.io/install/#one-line-binary-install) for more information.
 
 ```sh
@@ -21,6 +23,8 @@ Run `nvim` and install plugins with `:Lazy sync`
 Run `vim` and install plugins with `:PlugInstall`
 
 On a personal Mac, the apply also sets up the AI agent identity in `~/.agent-identity` and runs `agent-setup`, which creates the machine's SSH key and lists the credentials still to create in a browser. Run `agent-setup` again until it reports nothing left; `~/.agent-identity/README.md` explains the rest.
+
+On a Mac with Homebrew, the first apply also asks for your password once, to put Homebrew on the PATH of apps opened from the Dock (git hooks that Workbench or Fork run, like git-lfs's, need it). Restart the Mac afterwards.
 
 ## Usage
 
