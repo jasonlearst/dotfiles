@@ -127,8 +127,10 @@ local.env             per machine: your Gitea SSH host and URL (kept private)
 `agent.commitAs` picks who commits, per repo: `owner` is you, with the name and
 email your own git uses there (the repo's `user.email`, else `~/.gitconfig`);
 `agent` is jasonlearst-agent (the bot's no-reply address in GitHub repos,
-***REMOVED*** elsewhere). The default is in `git/config`; a repo
-overrides it with `git config --local agent.commitAs owner` (or `agent`).
+***REMOVED*** elsewhere). The default, in `git/config`, is `owner`:
+work you direct is yours, even when you drive it from your phone. A repo where
+Claude works unattended switches to the agent with
+`git config --local agent.commitAs agent`.
 Either way the identity is forced, Claude stays a co-author through the commit
 trailer, and pushes, PRs and issues still go through the agent's credentials.
 An upstream pull request has to be opened by you: the GitHub App isn't
