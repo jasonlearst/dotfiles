@@ -1,4 +1,3 @@
-tap "darrylmorley/whatcable"
 tap "mobile-dev-inc/tap"
 tap "peonping/tap", "https://github.com/PeonPing/homebrew-tap"
 brew "act"
@@ -83,16 +82,17 @@ cask "inkscape"
 cask "logi-options+"
 cask "obs"
 cask "obsidian"
-cask "pearcleaner"
+cask "purge"
 cask "shottr"
 cask "spotify"
 cask "sublime-text"
 cask "syncthing-app"
 cask "thaw"
 cask "typora"
+cask "updatest"
 cask "vlc"
+cask "whatcable"
 cask "wireshark-app"
-cask "darrylmorley/whatcable/whatcable", trusted: true
 mas "1Password for Safari", id: 1569813296
 mas "Alpenglow", id: 978589174
 mas "Amphetamine", id: 937984704
