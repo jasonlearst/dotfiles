@@ -33,7 +33,7 @@ Other distros currently print a "skipping" notice.
 share with Linux/WSL Homebrew.
 **Approach:**
 - `dot_Brewfile_common` — bat, fzf, ripgrep, fd, jq, etc.
-- `dot_Brewfile_darwin` — casks + iOS/cocoapods/duti
+- `dot_Brewfile_darwin` — casks + iOS/cocoapods
 - `dot_Brewfile_work.tmpl` gated on `.isWork`
 - Update darwin install script to bundle all three
 
@@ -108,11 +108,6 @@ exec-ing fish, behavior should match `dot_bash_profile`.
 **Why:** Bottom of script has commented-out suggestions (faster key repeat,
 smart-quote disable, screenshot redirect, etc.). Uncomment selectively, see
 how they feel, keep or revert.
-
-### [ ] `.chezmoiremove` / Brewfile contradiction
-**Why:** `.chezmoiremove` deletes `~/.config/nvim`, but `dot_Brewfile` still
-installs `neovim`. Pick one direction — either remove `neovim` from Brewfile
-or stop removing the config.
 
 ### [ ] Empty `.claude/` directory
 **Path:** `/Users/jason/.local/share/chezmoi/.claude/` (0 entries)
@@ -208,3 +203,5 @@ template's rendered output. To migrate safely:
   hashed against `dot_tmux.conf` / `dot_vimrc` so re-fire is automatic
 - ~~README placeholder TODOs~~ — History dropped (git is the history),
   License now references LICENSE.txt
+- ~~`.chezmoiremove` / Brewfile contradiction~~ — `~/.config/nvim` is now
+  managed, and `.chezmoiremove` no longer deletes it
