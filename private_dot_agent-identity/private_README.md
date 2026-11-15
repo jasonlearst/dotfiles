@@ -54,6 +54,9 @@ railway/              per machine: api-token, a Railway workspace token
 gcloud/               CLOUDSDK_CONFIG
 npm/npmrc             NPM_CONFIG_USERCONFIG (npm, pnpm, yarn)
 docker/config.json    DOCKER_CONFIG, without a keychain credential store
+                      (chezmoi creates these two once, then leaves them alone:
+                      registry logins land in them, so it never shows, re-adds or
+                      overwrites them)
 gnupg/                GNUPGHOME, empty
 zsh/                  ZDOTDIR: runs your zsh files, then re-applies activate
 local.env             per machine: your Gitea SSH host and URL (kept private)
