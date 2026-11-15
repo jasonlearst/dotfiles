@@ -173,13 +173,15 @@ else
   if [ -z "$cfg_tok" ]; then
     fail "gh config: $hosts has no placeholder token, so plain gh falls back to the personal keychain token"
   else
-    gh_tok=$(env -u GH_TOKEN -u GITHUB_TOKEN /opt/homebrew/bin/gh auth token -h github.com 2>/dev/null)
-    if [ "$gh_tok" != "$cfg_tok" ]; then
+    # shellcheck disable=SC1091
+    . "$AI/lib/real-command"
+    if ! real_command gh 2>/dev/null; then
+      warn "gh isn't installed outside the shims, so plain gh can't be checked"
+    elif [ "$(env -u GH_TOKEN -u GITHUB_TOKEN "$real" auth token -h github.com 2>/dev/null)" != "$cfg_tok" ]; then
       fail "plain gh (bypassing the shim) resolves a token that isn't the agent's placeholder"
     else
       ok "plain gh, bypassing the shim, finds only a placeholder, never the personal keychain token"
     fi
-    unset gh_tok
   fi
   unset cfg_tok
 fi

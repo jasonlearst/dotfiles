@@ -31,6 +31,8 @@ bin/agent-setup       create this machine's credentials; list what's left
 bin/agent-github-app  GitHub App tokens for git and gh; installations, uninstall
 bin/agent-gitea-mcp   runs the Gitea MCP server with this machine's Gitea token
 bin/as-owner          run one command with your SSH agent and op (see "Acting as you")
+lib/real-command      finds the real tool behind a shim: PATH without the shims, then
+                      Homebrew's bin and /usr/local/bin
 shims/                on PATH only in agent sessions:
   ssh scp sftp          add -F ssh/config
   git                   picks the commit identity per repo (see "Commit identity")

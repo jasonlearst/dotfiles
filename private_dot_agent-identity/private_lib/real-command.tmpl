@@ -1,0 +1,13 @@
+# Sourced by the shims and bin/ scripts. `real_command <name>` sets $real to
+# the first <name> on PATH outside shims/ and owner-shims/, then tries
+# Homebrew's bin and /usr/local/bin, for callers started without them on PATH.
+real_command() {
+  local d dirs ai="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+  IFS=: read -r -a dirs <<< "$PATH{{ with includeTemplate "homebrew-prefix" . | trim }}:{{ . }}/bin{{ end }}:/usr/local/bin"
+  for d in "${dirs[@]}"; do
+    case $d in "$ai/shims" | "$ai/owner-shims") continue ;; esac
+    if [ -f "$d/$1" ] && [ -x "$d/$1" ]; then real="$d/$1"; return 0; fi
+  done
+  echo "$1: not installed, or only the agent identity's shim is on PATH" >&2
+  return 127
+}

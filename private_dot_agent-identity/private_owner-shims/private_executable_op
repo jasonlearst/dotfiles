@@ -5,4 +5,6 @@ if [ -n "${AS_OWNER_LOG:-}" ]; then
   refs=$( { printf '%s\n' "$@"; env; } | grep -oE "op://[^\"']+" | sed 's/[[:space:]]*$//' | sort -u | paste -sd'|' -)
   printf '%s %s op %s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${AS_OWNER_RUN:-}" "${1:-}" "${refs:+refs: $refs}" >> "$AS_OWNER_LOG"
 fi
-exec /usr/local/bin/op "$@"
+. "${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}/lib/real-command"
+real_command op || exit
+exec "$real" "$@"
