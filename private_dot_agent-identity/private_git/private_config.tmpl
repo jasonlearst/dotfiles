@@ -2,8 +2,8 @@
 # sessions; the system config (osxkeychain) is skipped. activate also forces the
 # identity, helpers and signing at command scope so a repo can't override them.
 [user]
-	name = jasonlearst-agent
-	email = ***REMOVED***
+	name = {{ .agentName }}
+	email = {{ .agentEmail }}
 [core]
 	sshCommand = /usr/bin/ssh -F '{{ .chezmoi.homeDir }}/.agent-identity/ssh/config' -i '{{ .chezmoi.homeDir }}/.agent-identity/ssh/id_ed25519_agent_{{ .chezmoi.hostname }}' -o IdentitiesOnly=yes -o IdentityAgent=none
 	excludesFile = {{ .chezmoi.homeDir }}/.gitignore_global

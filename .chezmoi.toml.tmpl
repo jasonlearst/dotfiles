@@ -2,6 +2,14 @@
 {{- $user := promptStringOnce . "user" "What is your git username" -}}
 {{- $isWork := promptBoolOnce . "isWork" "Is this a work machine?" -}}
 
+{{- /* The AI agent identity's git author, on the personal Macs that get ~/.agent-identity. */ -}}
+{{- $agentName := "" -}}
+{{- $agentEmail := "" -}}
+{{- if and (eq .chezmoi.os "darwin") (not $isWork) -}}
+{{-   $agentName = promptStringOnce . "agentName" "What is the AI agent's git username" -}}
+{{-   $agentEmail = promptStringOnce . "agentEmail" "What is the AI agent's git email address" -}}
+{{- end -}}
+
 {{- /*
   isWSL: derived from kernel.osrelease. Stored once at init time. If you ever
   WSL-ify a non-WSL Linux box (or vice-versa), re-run `chezmoi init` to refresh.
@@ -18,6 +26,10 @@
     user = {{ $user | quote }}
     isWork = {{ $isWork }}
     isWSL = {{ $isWSL }}
+{{- if $agentEmail }}
+    agentName = {{ $agentName | quote }}
+    agentEmail = {{ $agentEmail | quote }}
+{{- end }}
 {{ if (or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin")) }}
 [edit]
     command = "code"
