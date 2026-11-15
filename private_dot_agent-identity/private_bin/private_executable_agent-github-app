@@ -163,6 +163,11 @@ run_gh() {
   allowed "$owner" || owner=$GITHUB_APP_DEFAULT_OWNER
   GH_TOKEN=$(token "$owner") || exit 1
   export GH_TOKEN
+  # hosts.yml's placeholder account always shows as a failed login, which
+  # would make a plain `gh auth status` exit 1; the app token is the active one.
+  if [ "${1:-}" = auth ] && [ "${2:-}" = status ]; then
+    case " $* " in *" --active "*|*" -a "*) ;; *) set -- "$@" --active ;; esac
+  fi
   exec "$REAL_GH" "$@"
 }
 

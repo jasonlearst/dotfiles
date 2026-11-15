@@ -35,6 +35,7 @@ shims/                on PATH only in agent sessions:
   git                   picks the commit email per repo (see GitHub below)
   gh                    runs gh with an app token for the account it targets
   tea                   points tea at xdg/tea
+  railway               passes railway/api-token to railway alone
   op                    refuses unless OP_SERVICE_ACCOUNT_TOKEN is set
 ssh/                  config; per machine: id_ed25519_agent_<host>{,.pub}, known_hosts
 git/config            GIT_CONFIG_GLOBAL; author jasonlearst-agent, default email ***REMOVED***
@@ -87,12 +88,16 @@ local.env             per machine: your Gitea SSH host and URL (kept private)
   remote lookup, about 15 ms; the rest go straight to git.
   gh falls back to your keychain token whenever its config has no token of
   its own, so `gh/hosts.yml` keeps a placeholder: gh run around the shim gets
-  a 401 rather than acting as you (`gh auth status` shows it as a failed login).
+  a 401 rather than acting as you. Don't log that placeholder out. The shim
+  adds `--active` to `gh auth status`, so it shows the app's account and exits
+  0 instead of listing the placeholder as a failed login.
 - **tea**: the shim sets `XDG_CONFIG_HOME` to `xdg/` for tea only.
-- **railway**: `RAILWAY_API_TOKEN` comes from `railway/api-token`, a workspace
-  token for Delvelop's projects that sees nothing personal. Without that file
-  it's a placeholder, so railway never falls back to your login in
-  `~/.railway`. A workspace token isn't a person, so CLI commands that look one
+- **railway**: the token is a workspace token for Delvelop's projects that
+  sees nothing personal, kept in `railway/api-token`. The environment only
+  carries a placeholder `RAILWAY_API_TOKEN`, so an `env` dump shows no token
+  and railway run around the shim fails instead of falling back to your login
+  in `~/.railway`. The railway shim reads the file and hands the token to
+  railway alone. A workspace token isn't a person, so CLI commands that look one
   up fail with "Unauthorized": `list`, `project list`, `whoami`, `link` (and so
   `status` and anything that needs a linked folder). What works:
   `railway api '<graphql>'`, commands given explicit IDs

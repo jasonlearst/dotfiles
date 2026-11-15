@@ -53,13 +53,10 @@ export GOOGLE_APPLICATION_CREDENTIALS="$_ai/gcloud/application_default_credentia
 export GNUPGHOME="$_ai/gnupg"
 
 # railway can't move its config folder, but a token in the environment wins
-# over the personal login in ~/.railway. The placeholder makes it fail closed.
-if [ -r "$_ai/railway/api-token" ]; then
-  IFS= read -r _ai_tok < "$_ai/railway/api-token"
-else
-  _ai_tok=agent-identity-has-no-railway-token
-fi
-export RAILWAY_API_TOKEN="$_ai_tok"
+# over the personal login in ~/.railway. The environment only ever holds this
+# placeholder, so railway run around its shim fails closed; the shim swaps in
+# the real token from railway/api-token for railway alone.
+export RAILWAY_API_TOKEN=agent-identity-has-no-railway-token
 
 # Any zsh started from here runs the personal startup files through
 # ~/.agent-identity/zsh, which re-applies this file afterwards.
@@ -76,5 +73,5 @@ while [ -n "$_ai_rest" ]; do
 done
 export PATH="$_ai/shims${_ai_p:+:$_ai_p}"
 
-unset _ai _ai_name _ai_email _ai_n _ai_tok _ai_p _ai_rest _ai_e
+unset _ai _ai_name _ai_email _ai_n _ai_p _ai_rest _ai_e
 unset -f _ai_git

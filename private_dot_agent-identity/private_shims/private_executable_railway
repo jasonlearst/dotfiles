@@ -1,0 +1,11 @@
+#!/bin/bash
+# railway with the agent's workspace token from railway/api-token, so the
+# token never sits in the shell's environment: activate exports only a
+# placeholder, which keeps railway off the personal login in ~/.railway.
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+if [ -r "$AI/railway/api-token" ]; then
+  IFS= read -r RAILWAY_API_TOKEN < "$AI/railway/api-token"
+  export RAILWAY_API_TOKEN
+fi
+unset RAILWAY_TOKEN
+exec /opt/homebrew/bin/railway "$@"
