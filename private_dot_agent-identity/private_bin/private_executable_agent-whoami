@@ -198,13 +198,20 @@ fi
 section "Railway CLI"
 [ -z "${RAILWAY_TOKEN:-}" ] || fail "RAILWAY_TOKEN is set, and railway would use it"
 if [ -z "${RAILWAY_API_TOKEN:-}" ]; then
-  fail "RAILWAY_API_TOKEN is unset, so railway uses the personal login in ~/.railway"
-elif [ "$RAILWAY_API_TOKEN" = agent-identity-has-no-railway-token ]; then
-  ok "not signed in (a placeholder RAILWAY_API_TOKEN keeps railway off ~/.railway)"
-elif [ -r "$AI/railway/api-token" ] && [ "$RAILWAY_API_TOKEN" = "$(cat "$AI/railway/api-token")" ]; then
-  ok "token from $AI/railway/api-token"
+  fail "RAILWAY_API_TOKEN is unset, so railway run around its shim would use the personal login in ~/.railway"
+elif [ "$RAILWAY_API_TOKEN" != agent-identity-has-no-railway-token ]; then
+  fail "RAILWAY_API_TOKEN holds a real value; the environment should only carry the placeholder"
 else
-  fail "RAILWAY_API_TOKEN is not the agent's token"
+  ok "the environment carries only the placeholder RAILWAY_API_TOKEN, so it holds no token"
+fi
+rw_bin=$(command -v railway)
+if [ -z "$rw_bin" ]; then
+  ok "railway isn't installed here"
+elif [ "$rw_bin" = "$AI/shims/railway" ]; then
+  if [ -s "$AI/railway/api-token" ]; then st="token from $AI/railway/api-token"; else st="no token yet (agent-setup lists the step)"; fi
+  ok "railway runs $rw_bin: $st"
+else
+  warn "railway runs $rw_bin, which gets only the placeholder (it fails closed, but the agent can't use Railway)"
 fi
 
 section "Google Cloud (gcloud)"
