@@ -43,7 +43,8 @@ owner-shims/          on PATH only inside as-owner: ssh scp sftp op as you, logg
   op                    refuses unless OP_SERVICE_ACCOUNT_TOKEN is set
 ssh/                  config; per machine: id_ed25519_agent_<host>{,.pub}, known_hosts
 git/config            GIT_CONFIG_GLOBAL; author and default email from chezmoi data
-                      (agentName, agentEmail; `chezmoi init` asks for them)
+                      (agentName, agentEmail; `chezmoi init` asks for them); aliases
+                      and lfs shared with ~/.gitconfig
 github-app/           app.env (IDs, allowed accounts), the avatars (avatar-badge.png
                       for GitHub, badge colour #2b3442; avatar.png for Gitea);
                       per machine: private-key.pem, cache/
