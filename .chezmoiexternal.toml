@@ -31,10 +31,6 @@
     url = {{ gitHubLatestReleaseAssetURL "zellij-org/zellij" (printf "zellij-%s-unknown-linux-musl.tar.gz" $a) | quote }}
     executable = true
     path = "zellij"
-[".local/bin/jump"]
-   type = "file"
-   url = {{ gitHubLatestReleaseAssetURL "gsamokovarov/jump" (printf "jump_%s_%s_binary" .chezmoi.os .chezmoi.arch) | quote }}
-   executable = true
 [".local/bin/fzf"]
     type = "archive-file"
     url = {{ gitHubLatestReleaseAssetURL "junegunn/fzf" (printf "fzf-*-%s_%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}

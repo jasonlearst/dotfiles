@@ -6,6 +6,8 @@ These are my personal dotfiles.  I use these over multiple platforms and machine
 
 On a Mac where you want the Brewfile's packages, install [Homebrew](https://brew.sh) first: chezmoi doesn't install it, and on Macs without it the apply skips the packages (and the Dock PATH below). Installing Homebrew later makes the next `chezmoi apply` catch up.
 
+The Brewfile also installs App Store apps, so sign in to the App Store before the first apply. Until those installs succeed, every apply runs the Brewfile again.
+
 The below command installs chezmoi and initializes the dotfiles. See: [chezmoi One-line binary install](https://www.chezmoi.io/install/#one-line-binary-install) for more information.
 
 ```sh
