@@ -10,13 +10,15 @@ activate="$HOME/.agent-identity/activate"
 [ -f "$activate" ] || activate=""
 printf '%s\n' "$input" | jq --arg activate "$activate" '
 def add_unique($rules): ((. // []) + $rules) | reduce .[] as $rule ([]; if index([$rule]) then . else . + [$rule] end);
-.permissions.allow |= add_unique([
+# The first version allowed every tea api call, deletes included; take that rule back out.
+.permissions.allow |= ((. // []) - ["Bash(tea api --login claude *)"] | add_unique([
   "Bash(gh pr create *)",
   "Bash(gh issue create *)",
   "Bash(tea pulls create --login claude *)",
   "Bash(tea issues create --login claude *)",
-  "Bash(tea api --login claude *)"
-])
+  "Bash(tea api --login claude -X POST /repos/*/issues/*/comments -d @-)",
+  "Bash(tea api --login claude -X PATCH /repos/*/pulls/* *)"
+]))
 | if $activate != "" then
     .env.CLAUDE_ENV_FILE = $activate
     | .permissions.ask |= add_unique([

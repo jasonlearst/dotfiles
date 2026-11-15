@@ -4,7 +4,7 @@ The repo's `## Tasks` section names the forge, the repo slug and, on Gitea, the 
 
 On Gitea every command passes `--login <login>`, so issues, comments and PRs come from that account. `git push` goes over SSH as that account too: Claude Code runs every command under the agent identity in `~/.agent-identity`, whose SSH key belongs to it. The account needs write access to the repo.
 
-Pass long text through a file. For JSON bodies on Gitea, build them with `jq -n --rawfile body <file> '{body: $body}'` and pipe that to `tea api ... -d @-`.
+Pass long text through a file. For JSON bodies on Gitea, build them with `jq -n --rawfile body <file> '{body: $body}'` and pipe that to `tea api ... -d @-`. Leave the write paths below unquoted, as shown: that's the form `~/.claude/settings.json` allows without a prompt.
 
 ## Read an issue, with its comments
 
@@ -39,7 +39,7 @@ The command prints the issue's URL. Then run the Tasks section's board command, 
 
 ```sh
 gh issue comment <n> --repo <repo> --body-file <file>
-jq -n --rawfile body <file> '{body: $body}' | tea api --login <login> -X POST '/repos/<repo>/issues/<n>/comments' -d @-
+jq -n --rawfile body <file> '{body: $body}' | tea api --login <login> -X POST /repos/<repo>/issues/<n>/comments -d @-
 ```
 
 ## Find this branch's PR
@@ -74,8 +74,8 @@ Gitea marks a draft by prefixing the title with `WIP: `.
 ```sh
 gh pr edit <n> --repo <repo> --body-file <file>
 gh pr ready <n> --repo <repo>
-jq -n --rawfile body <file> '{body: $body}' | tea api --login <login> -X PATCH '/repos/<repo>/pulls/<n>' -d @-
-tea api --login <login> -X PATCH '/repos/<repo>/pulls/<n>' -f title="<title without WIP: >"
+jq -n --rawfile body <file> '{body: $body}' | tea api --login <login> -X PATCH /repos/<repo>/pulls/<n> -d @-
+tea api --login <login> -X PATCH /repos/<repo>/pulls/<n> -f title="<title without WIP: >"
 ```
 
 ## Wait for CI
