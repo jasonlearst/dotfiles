@@ -1,0 +1,8 @@
+#!/bin/bash
+# The real op CLI inside as-owner; 1Password asks for your approval. Logs the
+# subcommand and any op:// references (vault item names, never values).
+if [ -n "${AS_OWNER_LOG:-}" ]; then
+  refs=$( { printf '%s\n' "$@"; env; } | grep -oE "op://[^\"']+" | sed 's/[[:space:]]*$//' | sort -u | paste -sd'|' -)
+  printf '%s %s op %s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${AS_OWNER_RUN:-}" "${1:-}" "${refs:+refs: $refs}" >> "$AS_OWNER_LOG"
+fi
+exec /usr/local/bin/op "$@"

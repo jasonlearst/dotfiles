@@ -1,0 +1,5 @@
+#!/bin/bash
+# ssh as you, inside as-owner: your ~/.ssh/config and 1Password agent, with no
+# password fallback (an unanswered approval fails instead) and no agent forwarding.
+[ -n "${AS_OWNER_LOG:-}" ] && printf '%s %s %s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${AS_OWNER_RUN:-}" ssh "$(printf '%s ' "$@" | cut -c1-300)" >> "$AS_OWNER_LOG"
+exec /usr/bin/ssh -o BatchMode=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no "$@"

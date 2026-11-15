@@ -1,0 +1,102 @@
+#!/bin/bash
+# as-owner --why "<reason>" [--max 30m] -- <command> [args...]
+#
+# Runs one command, and everything it starts, with your 1Password SSH agent and
+# the real op CLI instead of the agent's. 1Password asks for your approval (Touch
+# ID or your password) for each new use, so this only works while you're at the
+# Mac; away, the prompt goes unanswered and the command fails. Everything else
+# (commit identity, GitHub, Gitea, Railway) stays as the agent session had it.
+#
+# Each run, and each ssh and op call inside it, is logged to
+# ~/Library/Logs/agent-identity/as-owner.log and to the macOS log
+# (/usr/bin/log show --last 1d --predicate 'eventMessage CONTAINS "as-owner"').
+
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+LOG_DIR="$HOME/Library/Logs/agent-identity"
+LOG="$LOG_DIR/as-owner.log"
+SOCK="$HOME/.1password/agent.sock"
+
+usage() { sed -n '2,3s/^# \{0,1\}//p' "$0" >&2; exit 2; }
+die() { echo "as-owner: $*" >&2; exit 2; }
+log() {
+  (umask 077; mkdir -p "$LOG_DIR")
+  printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$*" >> "$LOG"
+  logger -t as-owner -- "as-owner $*" 2>/dev/null
+}
+
+why="" max=30m
+while [ $# -gt 0 ]; do
+  case $1 in
+    --why) [ $# -ge 2 ] || usage; why=$2; shift 2 ;;
+    --why=*) why=${1#--why=}; shift ;;
+    --max) [ $# -ge 2 ] || usage; max=$2; shift 2 ;;
+    --max=*) max=${1#--max=}; shift ;;
+    --) shift; break ;;
+    -h|--help) usage ;;
+    *) break ;;
+  esac
+done
+[ $# -gt 0 ] || usage
+[ -n "$why" ] || die 'say why, so the transcript and the log record it: as-owner --why "<reason>" -- <command>'
+case $max in
+  *[!0-9smh]*|'') die "--max takes a number with s, m or h, like 90s or 30m" ;;
+  *s) secs=${max%s} ;;
+  *m) secs=$(( ${max%m} * 60 )) ;;
+  *h) secs=$(( ${max%h} * 3600 )) ;;
+  *) secs=$(( max * 60 )) ;;
+esac
+[ -S "$SOCK" ] || die "1Password's SSH agent isn't at $SOCK; is 1Password running?"
+
+# Your ssh, scp, sftp and op go in front of the agent's shims, so children
+# (Ansible, op run, rsync) find them too. Only those four: git, gh, tea and
+# railway stay the agent's shims, so they keep acting as the agent.
+rest="$PATH:" path=""
+while [ -n "$rest" ]; do
+  e=${rest%%:*}; rest=${rest#*:}
+  case $e in "$AI/owner-shims"|"") ;; *) path="$path${path:+:}$e" ;; esac
+done
+run="$(date +%s)-$$"
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/as-owner.XXXXXX")
+export PATH="$AI/owner-shims:$path"
+export SSH_AUTH_SOCK="$SOCK" AS_OWNER_RUN="$run" AS_OWNER_LOG="$LOG"
+# Ansible keeps its ssh connections open for ansible.cfg's ControlPersist (30m in
+# infra): logged in as you, reusable by anything later. Keep them in this run's
+# own folder and close them when it ends.
+export ANSIBLE_SSH_CONTROL_PATH_DIR="$tmp/cp"
+unset SSH_AGENT_PID
+
+log "start $run cwd=$PWD max=$max why=\"$why\" cmd=$(printf '%q ' "$@")"
+start=$(date +%s)
+
+if [ -t 0 ]; then
+  "$@" &
+  child=$!
+  ( sleep "$secs"; log "timeout $run after $max"; kill -TERM "$child" 2>/dev/null ) &
+  timer=$!
+  wait "$child" 2>/dev/null; status=$?
+  kill "$timer" 2>/dev/null; wait "$timer" 2>/dev/null
+else
+  set -m  # own process group, so a timeout stops everything the command started
+  "$@" &
+  child=$!
+  ( sleep "$secs"; log "timeout $run after $max"; kill -TERM -- "-$child" 2>/dev/null; sleep 10; kill -KILL -- "-$child" 2>/dev/null ) &
+  timer=$!
+  set +m
+  # 2>/dev/null only hides bash's "Terminated" notice for a killed job; the
+  # command's own output isn't affected.
+  wait "$child" 2>/dev/null; status=$?
+  kill -- "-$timer" 2>/dev/null; wait "$timer" 2>/dev/null
+fi
+
+for s in "$tmp"/cp/*; do
+  [ -S "$s" ] && /usr/bin/ssh -O exit -o ControlPath="$s" as-owner-cleanup >/dev/null 2>&1
+done
+rm -rf "$tmp"
+# If op was used, end its authorization now, so the next run asks again instead
+# of riding on 1Password's 10-minute window.
+if grep -q " $run op " "$LOG" 2>/dev/null; then
+  "$AI/owner-shims/op" signout --all >/dev/null 2>&1
+fi
+
+log "end $run status=$status duration=$(( $(date +%s) - start ))s"
+exit "$status"

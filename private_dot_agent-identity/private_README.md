@@ -30,12 +30,14 @@ bin/agent-whoami      check a shell                              (on PATH via ~/
 bin/agent-setup       create this machine's credentials; list what's left
 bin/agent-github-app  GitHub App tokens for git and gh; installations, uninstall
 bin/agent-gitea-mcp   runs the Gitea MCP server with this machine's Gitea token
+bin/as-owner          run one command with your SSH agent and op (see "Acting as you")
 shims/                on PATH only in agent sessions:
   ssh scp sftp          add -F ssh/config
-  git                   picks the commit email per repo (see GitHub below)
+  git                   picks the commit identity per repo (see "Commit identity")
   gh                    runs gh with an app token for the account it targets
   tea                   points tea at xdg/tea
   railway               passes railway/api-token to railway alone
+owner-shims/          on PATH only inside as-owner: ssh scp sftp op as you, logged
   op                    refuses unless OP_SERVICE_ACCOUNT_TOKEN is set
 ssh/                  config; per machine: id_ed25519_agent_<host>{,.pub}, known_hosts
 git/config            GIT_CONFIG_GLOBAL; author jasonlearst-agent, default email ***REMOVED***
@@ -74,7 +76,8 @@ local.env             per machine: your Gitea SSH host and URL (kept private)
   `--owner`, a GitHub URL, `gh repo … OWNER/REPO`, `gh api repos|orgs|users/…`,
   `GH_REPO` or the repo's `origin`, and falls back to Delvelop; set
   `AGENT_GITHUB_OWNER=jasonlearst` for anything it can't tell (e.g. GraphQL).
-  The git shim picks the commit email per repo. Where a remote is on GitHub,
+  In `agent` mode (see "Commit identity"), the git shim picks the commit email
+  per repo. Where a remote is on GitHub,
   it's the bot's no-reply address
   (`356802260+jasonlearst-agent[bot]@users.noreply.github.com`), so GitHub
   links the commit to jasonlearst-agent[bot] and shows its avatar. Everywhere
@@ -110,11 +113,56 @@ local.env             per machine: your Gitea SSH host and URL (kept private)
   have no `~/.npmrc`, and agent-whoami warns if one appears.
 - **docker**: its own `DOCKER_CONFIG` (same contexts and plugin folder).
 - **gpg**: an empty `GNUPGHOME`.
-- **1Password**: `op` is blocked, and `SOPS_AGE_KEY_CMD` (an `op read` of your
-  vault) is cleared. Your 1Password configuration is untouched.
+- **1Password**: `op` is blocked outside `as-owner`. Agent shells get the same
+  op:// references your fish shell has, like `SOPS_AGE_KEY_CMD`, from
+  `~/.config/op-refs.env` (references, not secrets), so tools such as sops and
+  infra's `with-secrets.sh` find them; they only resolve inside `as-owner`.
+  Your 1Password configuration is untouched.
 - **fish**: `agent-run fish` re-applies the identity after `config.fish`. Fish
-  universal variables (like `SOPS_AGE_KEY_CMD`) can't be removed without
-  editing `fish_variables`, so they're overridden with empty values instead.
+  universal variables (like a stale `SOPS_AGE_KEY_CMD`) can't be removed without
+  editing `fish_variables`, so the blocked ones are overridden with empty values.
+
+## Commit identity
+
+`agent.commitAs` picks who commits, per repo: `owner` is you, with the name and
+email your own git uses there (the repo's `user.email`, else `~/.gitconfig`);
+`agent` is jasonlearst-agent (the bot's no-reply address in GitHub repos,
+***REMOVED*** elsewhere). The default, in `git/config`, is `owner`:
+work you direct is yours, even when you drive it from your phone. A repo where
+Claude works unattended switches to the agent with
+`git config --local agent.commitAs agent`.
+Either way the identity is forced, Claude stays a co-author through the commit
+trailer, and pushes, PRs and issues still go through the agent's credentials.
+An upstream pull request has to be opened by you: the GitHub App isn't
+installed on other people's repos.
+
+## Acting as you: as-owner
+
+    as-owner --why "upgrade Gitea and runners" -- just gitea
+
+Runs one command, and everything it starts, with your 1Password SSH agent and
+the real `op` in front of the agent's shims: `ssh`, `scp`, `sftp` and `op` are
+yours (your `~/.ssh/config`, no agent forwarding, no password fallback), while
+git, gh, tea and railway stay the agent's. 1Password asks for your approval,
+so it works only while you're at the Mac; away, the prompt goes unanswered and
+the command fails. `--why` is required. A run is capped at 30 minutes
+(`--max 90s`, `--max 2h`), Ansible's shared ssh connections are closed when it
+ends (infra's ControlPersist would keep them logged in as you for 30 minutes),
+and if `op` was used, `op signout` ends its authorization so the next run asks
+again. Each run, and each ssh and op call in it, is logged to
+`~/Library/Logs/agent-identity/as-owner.log` and the macOS log:
+`/usr/bin/log show --last 1d --predicate 'eventMessage BEGINSWITH "as-owner "'`.
+Claude Code always asks before running `as-owner`, and before the direct
+bypasses (`SSH_AUTH_SOCK=…`, `/usr/bin/ssh`, `/usr/local/bin/op`).
+
+What it weakens, by design: during a run, that process tree is you over SSH
+(root on hosts, with your keys) and can hold your secrets, such as the vault
+password and the SOPS age key, which decrypts every SOPS secret in infra. The
+agent writes the command, so read Claude's prompt before approving:
+1Password's prompt only says "ssh" or "op", not what's running. Depending on
+1Password's "remember key approval" setting, a second run soon after may not
+ask again. Like everything here, it's scripts the agent could edit, not a
+security boundary.
 
 ## Giving the agent access
 
