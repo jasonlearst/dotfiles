@@ -12,7 +12,7 @@ Before step 1, read the `## Tasks` section of the repo's root `CLAUDE.md` (forge
 
 ## 1. Worktree
 
-`git rev-parse --show-toplevel` must end in `.claude/worktrees/task-$ARGUMENTS`. Anywhere else, whether the primary checkout or another task's worktree, stop here: tell the user to run `/worktree $ARGUMENTS` in the project's main tab, then open a Claude tab on the worktree, which Workbench lists under the repo's project by its branch, and run `/task $ARGUMENTS` there. A session stays in the folder it started in, so that every tab in Workbench matches the folder it works on.
+The session must be in a worktree on this issue's branch: `git branch --show-current` matches `*/$ARGUMENTS-*`, and `git rev-parse --show-toplevel` isn't the primary checkout, the first path `git worktree list` prints. `/worktree` makes it at `.claude/worktrees/task-$ARGUMENTS`, or reuses one the branch already has elsewhere. Anywhere else, whether the primary checkout or another task's worktree, stop here: tell the user to run `/worktree $ARGUMENTS` in the project's main tab, then open a Claude tab on the worktree, which Workbench lists under the repo's project by its branch, and run `/task $ARGUMENTS` there. A session stays in the folder it started in, so that every tab in Workbench matches the folder it works on.
 
 ## 2. Brief
 

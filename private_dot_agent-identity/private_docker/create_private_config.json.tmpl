@@ -1,0 +1,5 @@
+{{- $prefix := includeTemplate "homebrew-prefix" . | trim -}}
+{
+  "auths": {}{{ if $prefix }},
+  "cliPluginsExtraDirs": ["{{ $prefix }}/lib/docker/cli-plugins"]{{ end }}
+}

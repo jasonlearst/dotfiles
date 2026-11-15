@@ -25,6 +25,8 @@ IMPROVEMENTS.md
 
 {{ if .isWork }}
 .claude
+# Needs sudo, which a work Mac may not give.
+.chezmoiscripts/darwin/*launchd-user-path*
 {{ end }}
 
 # The agent identity is for personal Macs where agents run. Its per-machine

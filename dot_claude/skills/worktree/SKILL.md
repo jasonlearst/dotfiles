@@ -16,7 +16,7 @@ Read the `## Tasks` section of the repo's root `CLAUDE.md` first. On Gitea, put 
 
 1. Read the issue's title, state and labels. If it's closed, ask before going on.
 2. Name the branch as the Branching section of `~/.claude/CLAUDE.md` says: `<type>/<issue>-<descriptive-summary>`, with the type picked from the issue's label.
-3. Run `bash ~/.claude/skills/worktree/worktree.sh new <issue> <branch>`. It fetches origin, then reuses the issue's worktree, or a branch that already exists for the issue, before making a new branch from origin's default branch at `.claude/worktrees/task-<issue>`. It keeps `.claude/worktrees/` out of `git status`, copies the git-ignored files `.worktreeinclude` lists, and prints the worktree's path last.
+3. Run `bash ~/.claude/skills/worktree/worktree.sh new <issue> <branch>`. It fetches origin, then reuses the issue's worktree wherever it is, or a branch that already exists for the issue, before making a new branch from origin's default branch at `.claude/worktrees/task-<issue>`. If the issue's worktree is registered but its folder is missing, it stops and says so. It keeps `.claude/worktrees/` out of `git status`, copies the git-ignored files `.worktreeinclude` lists, and prints the worktree's path last.
 4. Report the path, the branch, anything reused or copied, and the next step: within about half a minute the worktree appears in Workbench's sidebar under the repo's project, labelled `<branch>`; open a Claude tab on it there and run `/task <issue>`. On a machine without Workbench, start Claude in the worktree's folder instead.
 
 ## `/worktree <name> <branch>`
@@ -25,4 +25,4 @@ For work without an issue. Skip steps 1 and 2, and pass the name instead of an i
 
 ## `/worktree list` and `/worktree clean`
 
-`list` shows each worktree with its PR, status, size and verdict. `clean` without `--yes` is a dry run: show the user what it would remove, and run it with `--yes` once they agree, adding `--keep <path>` for each worktree they want spared. It removes a worktree and its branch only when the branch is merged (its PR merged with the same head commit, or the head merged into the base branch with `--no-ff`), nothing is uncommitted, and no process has files open inside it. Report what was removed.
+`list` shows each worktree with its PR, status, size and verdict. `clean` without `--yes` is a dry run: show the user what it would remove, and run it with `--yes` once they agree, adding `--keep <path>` for each worktree they want spared, with the path as `clean` showed it. It removes a worktree and its branch only when the branch is merged (its PR merged with the same head commit, or the head merged into the base branch with `--no-ff`), nothing is uncommitted, and no process has files open inside it. Report what was removed.

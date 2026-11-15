@@ -18,7 +18,6 @@ AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
 APP_DIR="$AI/github-app"
 CACHE="$APP_DIR/cache"
 API=https://api.github.com
-REAL_GH=/opt/homebrew/bin/gh
 
 die() { echo "agent-github-app: $*" >&2; exit 1; }
 
@@ -168,7 +167,10 @@ run_gh() {
   if [ "${1:-}" = auth ] && [ "${2:-}" = status ]; then
     case " $* " in *" --active "*|*" -a "*) ;; *) set -- "$@" --active ;; esac
   fi
-  exec "$REAL_GH" "$@"
+  # shellcheck disable=SC1091
+  . "$AI/lib/real-command"
+  real_command gh || exit
+  exec "$real" "$@"
 }
 
 installations() {

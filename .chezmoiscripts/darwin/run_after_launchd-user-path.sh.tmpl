@@ -1,0 +1,34 @@
+{{- /* Renders only on Macs with Homebrew whose launchd user PATH isn't set yet; elsewhere it's empty and chezmoi skips it. */ -}}
+{{- $prefix := includeTemplate "homebrew-prefix" . | trim -}}
+{{- $want := printf "%s/bin:%s/sbin:/usr/bin:/bin:/usr/sbin:/sbin" $prefix $prefix -}}
+{{- $have := output "sh" "-c" "plutil -extract PathEnvironmentVariable raw /private/var/db/com.apple.xpc.launchd/config/user.plist 2>/dev/null || true" | trim -}}
+{{- if and $prefix (ne $have $want) -}}
+#!/bin/bash
+#
+# Give apps opened from the Dock Homebrew on their PATH. launchd starts them
+# with /usr/bin:/bin:/usr/sbin:/sbin, so git hooks they run (git-lfs's, when
+# Workbench or Fork create a worktree) can't find Homebrew's tools.
+#
+# This renders until launchd's user PATH is set, so every apply tries again
+# until it is, and it never fails the apply: without a way to ask for sudo, it
+# says what to run and leaves it to the next apply. Then the Mac needs a
+# restart.
+#
+# To undo: delete this script from the source, then
+# sudo rm /private/var/db/com.apple.xpc.launchd/config/user.plist, and restart.
+
+set -eufo pipefail
+
+want="{{ $want }}"
+
+if [[ ! -t 0 ]] && ! sudo -n true 2>/dev/null; then
+  echo "launchd user PATH needs sudo, and there's no terminal to ask in. The next chezmoi apply asks again, or from a terminal run:" >&2
+  echo "  sudo launchctl config user path \"$want\"" >&2
+  exit 0
+fi
+if ! sudo launchctl config user path "$want"; then
+  echo "launchd user PATH wasn't set; the next chezmoi apply asks again." >&2
+  exit 0
+fi
+echo "Apps opened from the Dock will get $want after you restart the Mac."
+{{- end }}

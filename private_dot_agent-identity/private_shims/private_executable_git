@@ -12,13 +12,8 @@
 
 AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
 
-real=""
-IFS=: read -r -a dirs <<< "$PATH"
-for d in "${dirs[@]}"; do
-  [ "$d" = "$AI/shims" ] && continue
-  if [ -x "$d/git" ]; then real="$d/git"; break; fi
-done
-[ -n "$real" ] || { echo "git: no git on PATH besides $AI/shims" >&2; exit 127; }
+. "$AI/lib/real-command"
+real_command git || exit
 
 # The global options that say which repo this is: -C, --git-dir, --work-tree.
 loc=()

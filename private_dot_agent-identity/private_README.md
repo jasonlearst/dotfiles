@@ -31,6 +31,8 @@ bin/agent-setup       create this machine's credentials; list what's left
 bin/agent-github-app  GitHub App tokens for git and gh; installations, uninstall
 bin/agent-gitea-mcp   runs the Gitea MCP server with this machine's Gitea token
 bin/as-owner          run one command with your SSH agent and op (see "Acting as you")
+lib/real-command      finds the real tool behind a shim: PATH without the shims, then
+                      Homebrew's bin and /usr/local/bin
 shims/                on PATH only in agent sessions:
   ssh scp sftp          add -F ssh/config
   git                   picks the commit identity per repo (see "Commit identity")
@@ -40,7 +42,9 @@ shims/                on PATH only in agent sessions:
 owner-shims/          on PATH only inside as-owner: ssh scp sftp op as you, logged
   op                    refuses unless OP_SERVICE_ACCOUNT_TOKEN is set
 ssh/                  config; per machine: id_ed25519_agent_<host>{,.pub}, known_hosts
-git/config            GIT_CONFIG_GLOBAL; author jasonlearst-agent, default email ***REMOVED***
+git/config            GIT_CONFIG_GLOBAL; author and default email from chezmoi data
+                      (agentName, agentEmail; `chezmoi init` asks for them); aliases
+                      and lfs shared with ~/.gitconfig
 github-app/           app.env (IDs, allowed accounts), the avatars (avatar-badge.png
                       for GitHub, badge colour #2b3442; avatar.png for Gitea);
                       per machine: private-key.pem, cache/
@@ -51,6 +55,9 @@ railway/              per machine: api-token, a Railway workspace token
 gcloud/               CLOUDSDK_CONFIG
 npm/npmrc             NPM_CONFIG_USERCONFIG (npm, pnpm, yarn)
 docker/config.json    DOCKER_CONFIG, without a keychain credential store
+                      (chezmoi creates these two once, then leaves them alone:
+                      registry logins land in them, so it never shows, re-adds or
+                      overwrites them)
 gnupg/                GNUPGHOME, empty
 zsh/                  ZDOTDIR: runs your zsh files, then re-applies activate
 local.env             per machine: your Gitea SSH host and URL (kept private)
@@ -81,9 +88,9 @@ local.env             per machine: your Gitea SSH host and URL (kept private)
   it's the bot's no-reply address
   (`356802260+jasonlearst-agent[bot]@users.noreply.github.com`), so GitHub
   links the commit to jasonlearst-agent[bot] and shows its avatar. Everywhere
-  else it's ***REMOVED***, so Gitea links the
+  else it's the agent's own address (`agentEmail`), so Gitea links the
   commit to the agent's account and never sees a github.com address. Commits
-  made in Gitea and mirrored to GitHub keep ***REMOVED*** and show
+  made in Gitea and mirrored to GitHub keep that address and show
   there as an unlinked "jasonlearst-agent", since an app's bot can't own any
   other email. Either way the email is forced, so a repo's own `user.email`
   can't win. Pushes, PRs, issues and comments show as jasonlearst-agent[bot].
@@ -127,7 +134,7 @@ local.env             per machine: your Gitea SSH host and URL (kept private)
 `agent.commitAs` picks who commits, per repo: `owner` is you, with the name and
 email your own git uses there (the repo's `user.email`, else `~/.gitconfig`);
 `agent` is jasonlearst-agent (the bot's no-reply address in GitHub repos,
-***REMOVED*** elsewhere). The default, in `git/config`, is `owner`:
+its own `agentEmail` address elsewhere). The default, in `git/config`, is `owner`:
 work you direct is yours, even when you drive it from your phone. A repo where
 Claude works unattended switches to the agent with
 `git config --local agent.commitAs agent`.
@@ -175,8 +182,8 @@ security boundary.
   public, so check now and then that nobody else installed it:
   `agent-github-app installations` (exits 3 and names any stranger), and
   remove one with `agent-github-app uninstall <id>`.
-- **Gitea**: the agent is the user jasonlearst-agent, email
-  ***REMOVED***, so Gitea links its commits to that account. Each
+- **Gitea**: the agent is the user jasonlearst-agent, with the `agentEmail`
+  address, so Gitea links its commits to that account. Each
   machine has its own SSH key and its own API token; the token lives only in
   that machine's tea login, which the Gitea MCP server reads through
   `agent-gitea-mcp`. The account has write access as a collaborator on the
