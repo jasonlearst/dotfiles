@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # One worktree per task under <primary checkout>/.claude/worktrees/, made from any checkout so no session has to move.
-# Usage: worktree.sh new <issue|name> <branch> | list | clean [--yes] [--keep <path>]
+# Usage: worktree.sh new <issue|name> <branch> | list | clean [--yes] [--keep <path>]...
 # The forge and repo come from origin, the base from origin/HEAD. Overrides: WORKTREE_FORGE (github|gitea),
 # WORKTREE_REPO (owner/repo), WORKTREE_BASE (e.g. origin/develop), TEA_LOGIN (tea login for Gitea).
 # A PR doesn't exist when a worktree is created, so worktrees are named by issue and matched to PRs by branch.
 set -euo pipefail
 
-AGENT_MIN_AGE_SECONDS=$((24 * 60 * 60))
+AGENT_MIN_AGE_MINUTES=$((24 * 60))
 
 die() { echo "worktree.sh: $*" >&2; exit 1; }
 
@@ -84,7 +84,9 @@ cmd_new() {
   fi
 
   existing="$(worktrees | awk -F'\t' -v p="$path" -v b="$branch" '$1 == p || $2 == b { print $1; exit }')"
-  if [[ -n $existing ]]; then
+  if [[ -n $existing && ! -d $existing ]]; then
+    die "$existing is registered for $branch but its directory is missing. If it's gone for good, run git worktree prune (unlock it first if it's locked), then retry."
+  elif [[ -n $existing ]]; then
     echo "Reusing $existing" >&2
     path="$existing"
   elif git show-ref --quiet --verify "refs/heads/$branch"; then
@@ -145,11 +147,16 @@ find_pr() {
 
 # Sets verdict (remove|keep), reason, pr_label and status for one worktree.
 judge() {
-  local path="$1" branch="$2" state="$3" admin_dir age ahead processes
+  local path="$1" branch="$2" state="$3" created ahead processes
   verdict=keep reason="" pr_label="-" status="-"
 
   if [[ $path == "$primary" ]]; then reason="primary checkout"; return; fi
   if [[ $state == prunable ]]; then reason="directory is gone (git worktree prune)"; return; fi
+  if [[ ! -d $path ]]; then
+    reason="directory unavailable"
+    if [[ $state == locked ]]; then reason="locked, $reason"; fi
+    return
+  fi
 
   find_pr "$branch"
   if [[ -n $pr_number ]]; then pr_label="#$pr_number $pr_state"; fi
@@ -174,11 +181,11 @@ judge() {
 
   if [[ $branch == worktree-agent-* ]]; then
     ahead="$(git rev-list --count "$base..$branch")"
-    admin_dir="$(git -C "$path" rev-parse --absolute-git-dir)"
-    age=$(($(date +%s) - $(stat -f %B "$admin_dir")))
+    # git writes commondir once, when it makes the worktree; the admin dir's own mtime moves with every index write.
+    created="$(git -C "$path" rev-parse --absolute-git-dir)/commondir"
     if [[ $ahead -gt 0 ]]; then reason="agent branch $ahead ahead of $base"
     elif grep -q "refs/heads/$branch\$" <<<"$remote_heads"; then reason="agent branch was pushed"
-    elif [[ $age -le $AGENT_MIN_AGE_SECONDS ]]; then reason="agent worktree under 24h old"
+    elif [[ -n $(find "$created" -mmin "-$AGENT_MIN_AGE_MINUTES") ]]; then reason="agent worktree under 24h old"
     else verdict=remove reason="stale agent worktree"
     fi
     return
@@ -207,6 +214,19 @@ judge() {
 
 display_path() { echo "${1#"$(dirname "$primary")/"}"; }
 
+# Takes a worktree's path as list and clean show it, absolute, relative, or from inside it, and prints it as git lists it.
+listed_path() {
+  local arg="${1/#\~/$HOME}" listed candidate top
+  listed="$(worktrees | cut -f1)"
+  for candidate in "$arg" "$(dirname "$primary")/$arg"; do
+    candidate="${candidate%/}"
+    if grep -qxF -- "$candidate" <<<"$listed"; then echo "$candidate"; return; fi
+    top="$(git -C "$candidate" rev-parse --show-toplevel 2>/dev/null)" || continue
+    if grep -qxF -- "$top" <<<"$listed"; then echo "$top"; return; fi
+  done
+  die "--keep $1: not a worktree of this repo"
+}
+
 cmd_list() {
   load_remote_state
   {
@@ -221,12 +241,17 @@ cmd_list() {
 }
 
 cmd_clean() {
-  local yes="" spared=""
+  local yes="" spared="" kept
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --yes) yes=1 ;;
-      --keep) [[ $# -ge 2 ]] || die "usage: clean [--yes] [--keep <path>]"; spared="$2"; shift ;;
-      *) die "usage: clean [--yes] [--keep <path>]" ;;
+      --keep)
+        [[ $# -ge 2 ]] || die "usage: clean [--yes] [--keep <path>]..."
+        kept="$(listed_path "$2")"
+        spared+="$kept"$'\n'
+        shift
+        ;;
+      *) die "usage: clean [--yes] [--keep <path>]..." ;;
     esac
     shift
   done
@@ -236,7 +261,7 @@ cmd_clean() {
   while IFS=$'\t' read -r path branch state <&3; do
     judge "$path" "$branch" "$state"
     # A session that has just left a worktree holds nothing open there, so the in-use check can't protect it.
-    if [[ $path == "$spared" ]]; then verdict=keep reason="named by --keep"; fi
+    if grep -qxF -- "$path" <<<"$spared"; then verdict=keep reason="named by --keep"; fi
     if [[ $verdict == keep ]]; then
       echo "keep    $(display_path "$path"): $reason"
     elif [[ -z $yes ]]; then
@@ -255,5 +280,5 @@ case "${1:-}" in
   new) shift; cmd_new "$@" ;;
   list) cmd_list ;;
   clean) shift; cmd_clean "$@" ;;
-  *) die "usage: new <issue|name> <branch> | list | clean [--yes] [--keep <path>]" ;;
+  *) die "usage: new <issue|name> <branch> | list | clean [--yes] [--keep <path>]..." ;;
 esac

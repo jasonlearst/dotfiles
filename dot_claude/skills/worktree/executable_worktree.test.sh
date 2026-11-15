@@ -78,6 +78,7 @@ running="$(task 8)"; commit_in "$running" work; pr 8 MERGED "$(pushed_head "$run
 (cd "$running" && exec sleep 300) &
 sleeper=$!
 just_left="$(task 9)"; commit_in "$just_left" work; pr 9 MERGED "$(pushed_head "$just_left")"
+spared="$(task 16)"; commit_in "$spared" work; pr 16 MERGED "$(pushed_head "$spared")"
 local_merge="$(task 14)"; commit_in "$local_merge" work; git merge --quiet --no-ff -m "Merge chore/14-case" chore/14-case
 unmerged="$(task 15)"; commit_in "$unmerged" "work on 15"
 
@@ -87,7 +88,7 @@ if exists "$merged/notes.txt"; then fail "untracked but not ignored file copied"
 if [[ -z $(git status --porcelain --ignored=no -- .claude) ]]; then echo "ok    .claude/worktrees hidden from git status"; else fail ".claude/worktrees shows in git status"; fi
 if [[ $(grep -c '^/.claude/worktrees/$' .git/info/exclude) == 1 ]]; then echo "ok    exclude added once"; else fail "exclude line count is not 1"; fi
 
-age_agent() { touch -t 202001010000 "$(git -C "$1" rev-parse --absolute-git-dir)"; }
+age_agent() { touch -t 202001010000 "$(git -C "$1" rev-parse --absolute-git-dir)/commondir"; }
 agent() { git worktree add --quiet -b "worktree-agent-$1" ".claude/worktrees/agent-$1" origin/main; echo "$PWD/.claude/worktrees/agent-$1"; }
 stale="$(agent stale)"; age_agent "$stale"
 fresh="$(agent fresh)"
@@ -102,7 +103,7 @@ expect "dry run names the merged worktree" "would remove .*task-1 "
 expect "dry run says nothing was removed" "Dry run"
 if [[ $(git worktree list | wc -l) != "$before" ]]; then fail "dry run removed something"; fi
 
-output="$("$script" clean --yes --keep "$just_left")"
+output="$("$script" clean --yes --keep "$just_left/" --keep repo/.claude/worktrees/task-16)"
 echo "$output" | sed 's/^/      /'
 expect "primary kept" "keep .*repo: primary checkout"
 expect "merged PR removed" "removed .*task-1 and branch chore/1-case: PR #1 merged"
@@ -114,6 +115,7 @@ expect "unpushed commits kept" "task-6: branch has commits outside merged PR #6"
 expect "brand-new worktree kept" "task-7: no PR"
 expect "running process kept" "task-8: in use by sleep"
 expect "worktree named by --keep kept" "task-9: named by --keep"
+expect "second --keep, as clean shows it, kept" "task-16: named by --keep"
 expect "stale agent removed" "removed .*agent-stale"
 expect "fresh agent kept" "agent-fresh: agent worktree under 24h old"
 expect "agent with commits kept" "agent-ahead: agent branch 1 ahead"
@@ -129,6 +131,7 @@ occupied="$(task 10)"; commit_in "$occupied" work; pr 10 MERGED "$(pushed_head "
 output="$(cd "$occupied" && "$script" clean --yes)"
 expect "worktree the script runs in kept" "task-10: in use by"
 expect "--keep lasts one run" "removed .*task-9 "
+expect "every --keep lasts one run" "removed .*task-16 "
 if ! exists "$occupied"; then fail "the worktree the script ran in is gone"; fi
 
 output="$(cd "$occupied" && "$script" new 11 chore/11-case 2>/dev/null)"
@@ -151,7 +154,22 @@ if grep -q "already has branch" <<<"$output"; then fail "issue 13 matched issue 
 output="$("$script" new probe docs/probe 2>/dev/null)"
 expect "named worktree for non-issue work" "^$tmp/repo/.claude/worktrees/probe$"
 
-for bad in "clean --keep" "clean --nope" "new" "new a/b x"; do
+gone="$(task 17)"
+rm -rf "$gone"
+if output="$("$script" new 17 chore/17-case 2>&1)"; then fail "new reused a missing worktree: $output"; else expect "new refuses a missing worktree" "directory is missing"; fi
+git worktree prune
+output="$("$script" new 17 chore/17-case 2>/dev/null)"
+if [[ -d $output ]]; then echo "ok    new works again after prune"; else fail "new after prune gave '$output'"; fi
+
+unmounted="$(task 18)"
+git worktree lock "$unmounted"
+mv "$unmounted" "$tmp/unmounted"
+if output="$("$script" list 2>&1)"; then echo "ok    list survives a locked worktree whose directory is unavailable"; else fail "list failed: $output"; fi
+expect "unavailable locked worktree kept" "task-18 .*keep: locked, directory unavailable"
+if [[ $(wc -l <<<"$output") -eq $(($(git worktree list | wc -l) + 1)) ]]; then echo "ok    list goes on past it"; else fail "list stopped early"; fi
+mv "$tmp/unmounted" "$unmounted"
+
+for bad in "clean --keep" "clean --nope" "clean --keep $tmp/nope" "new" "new a/b x"; do
   if "$script" $bad 2>/dev/null; then fail "'$bad' was accepted"; else echo "ok    '$bad' rejected"; fi
 done
 
