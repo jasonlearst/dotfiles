@@ -74,12 +74,10 @@ if test -S ~/.1password/agent.sock
 end
 {{- end }}
 
-# SOPS age key on demand: sops 3.11+ runs SOPS_AGE_KEY_CMD whenever it needs
-# the key, so no script or per-invocation export is required. The value is only
-# an op:// reference, not a secret. CI sets SOPS_AGE_KEY/_FILE directly instead.
-if command --query op
-    set -gx SOPS_AGE_KEY_CMD "op read 'op://Personal/Infra - SOPS age Key/credential'"
-end
+# op:// references (not secrets), such as SOPS_AGE_KEY_CMD, which sops 3.11+
+# runs whenever it needs the age key. They live in one file that agent shells
+# source too, so both see the same references. CI sets SOPS_AGE_KEY/_FILE instead.
+test -r ~/.config/op-refs.env; and source ~/.config/op-refs.env
 
 # bat as the man pager (bat is installed via .chezmoiexternal.toml)
 set -gx MANROFFOPT "-c"

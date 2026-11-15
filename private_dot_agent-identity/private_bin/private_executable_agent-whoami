@@ -81,16 +81,21 @@ done
 section "Git"
 if in_ai "${GIT_CONFIG_GLOBAL:-}"; then ok "global config: $GIT_CONFIG_GLOBAL"; else fail "global config: ${GIT_CONFIG_GLOBAL:-~/.gitconfig} (the personal one)"; fi
 if [ "${GIT_CONFIG_NOSYSTEM:-}" = 1 ]; then ok "system config skipped, so the osxkeychain helper is off"; else fail "system config is read, and it adds credential.helper=osxkeychain"; fi
+commit_as=$(git config --get agent.commitAs 2>/dev/null); commit_as=${commit_as:-agent}
 bot_email=$(sed -n "s/^GITHUB_APP_BOT_EMAIL='\(.*\)'\$/\1/p" "$AI/github-app/app.env" 2>/dev/null)
-if git config --get-regexp '^remote\..*\.url$' 2>/dev/null | grep -q github.com && [ -n "$bot_email" ]; then
-  expect_email=$bot_email
+if [ "$commit_as" = owner ]; then
+  expect_name=$(git config --local --get user.name 2>/dev/null || git config --file "$HOME/.gitconfig" --get user.name 2>/dev/null)
+  expect_email=$(git config --local --get user.email 2>/dev/null || git config --file "$HOME/.gitconfig" --get user.email 2>/dev/null)
+  where="agent.commitAs is owner here, so commits are yours ($expect_name <$expect_email>); pushes and API calls stay the agent's"
+elif git config --get-regexp '^remote\..*\.url$' 2>/dev/null | grep -q github.com && [ -n "$bot_email" ]; then
+  expect_name=$agent_name expect_email=$bot_email
   where="this repo is on GitHub, so commits use the bot's no-reply address and GitHub links them to the bot"
 else
-  expect_email=$agent_email
+  expect_name=$agent_name expect_email=$agent_email
   where="this repo isn't on GitHub, so commits use $agent_email (Gitea links them to the agent's account)"
 fi
 git_bin=$(command -v git)
-if [ "$git_bin" = "$AI/shims/git" ]; then ok "git runs $git_bin, which picks the commit email per repo"; else warn "git runs $git_bin, so commits in GitHub repos won't link to the bot"; fi
+if [ "$git_bin" = "$AI/shims/git" ]; then ok "git runs $git_bin, which picks the commit identity per repo"; else warn "git runs $git_bin, so agent.commitAs and the bot address don't apply"; fi
 note "$where"
 for role in AUTHOR COMMITTER; do
   label=$(printf '%s' "$role" | tr '[:upper:]' '[:lower:]')
@@ -98,10 +103,10 @@ for role in AUTHOR COMMITTER; do
   ident=${ident% * *}
   name=${ident% <*}
   email=${ident##*<}; email=${email%>}
-  if [ "$email" = "$personal_email" ] || [ "$name" = "$personal_name" ]; then
+  if [ "$commit_as" != owner ] && { [ "$email" = "$personal_email" ] || [ "$name" = "$personal_name" ]; }; then
     fail "$label: $ident is the personal identity"
-  elif [ "$email" != "$expect_email" ] || [ "$name" != "$agent_name" ]; then
-    fail "$label: $ident, but here the agent is $agent_name <$expect_email>"
+  elif [ "$email" != "$expect_email" ] || [ "$name" != "$expect_name" ]; then
+    fail "$label: $ident, but here it should be $expect_name <$expect_email>"
   else
     ok "$label: $ident"
   fi
@@ -257,6 +262,12 @@ if in_ai "${GNUPGHOME:-}"; then
 else
   fail "home: ${GNUPGHOME:-~/.gnupg} (the personal keys)"
 fi
+
+section "Acting as you (as-owner)"
+case ":$PATH:" in
+  *":$AI/owner-shims:"*) warn "this shell is inside an as-owner run: ssh and op are yours, approved in 1Password" ;;
+  *) if [ -x "$AI/bin/as-owner" ]; then ok "not inside as-owner; your SSH agent and op need: as-owner --why \"…\" -- <command>"; else note "as-owner isn't installed"; fi ;;
+esac
 
 section "1Password CLI (op)"
 op_bin=$(command -v op)
