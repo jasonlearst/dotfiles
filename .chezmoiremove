@@ -1,3 +1,4 @@
 # Paths chezmoi should delete from the target if present.
 # (~/.config/nvim used to be listed to wipe stale config; it is now a
 # managed directory, so that entry was removed.)
+.local/bin/jump
