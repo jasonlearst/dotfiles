@@ -1,0 +1,4 @@
+# ZDOTDIR for agent zsh: run the personal ~/.zlogin, then re-apply the agent
+# identity, which that file may have undone (SSH_AUTH_SOCK, PATH order).
+[[ -r $HOME/.zlogin ]] && source $HOME/.zlogin
+source ${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}/activate

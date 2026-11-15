@@ -1,0 +1,13 @@
+#!/bin/bash
+# agent-gitea-mcp <gitea-mcp command> [args...]: run a Gitea MCP server with
+# this machine's agent token, read from the agent's tea login (`claude`), so
+# ~/.claude.json holds no copy of it. Claude Code runs it through agent-run:
+#   claude mcp add gitea -s user -- ~/.agent-identity/bin/agent-run \
+#     ~/.agent-identity/bin/agent-gitea-mcp <path to gitea-mcp> -t stdio --host <url>
+
+AI="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+CFG="$AI/xdg/tea/config.yml"
+[ $# -gt 0 ] || { echo "usage: agent-gitea-mcp <gitea-mcp command> [args...]" >&2; exit 2; }
+tok=$(awk '/^ *- name:/{n=$3} n=="claude" && /^ *token:/{print $2; exit}' "$CFG" 2>/dev/null)
+[ -n "$tok" ] || { echo "agent-gitea-mcp: no token for the claude login in $CFG (run agent-setup)" >&2; exit 1; }
+GITEA_ACCESS_TOKEN="$tok" exec "$@"

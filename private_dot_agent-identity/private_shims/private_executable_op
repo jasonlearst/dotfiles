@@ -1,0 +1,8 @@
+#!/bin/bash
+# Without a service account, op unlocks the personal vaults through the
+# 1Password app.
+if [ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+  echo "op: blocked for the agent identity. Without OP_SERVICE_ACCOUNT_TOKEN, op would open the personal 1Password vaults." >&2
+  exit 1
+fi
+exec /usr/local/bin/op "$@"

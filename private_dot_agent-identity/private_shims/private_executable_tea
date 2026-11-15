@@ -1,0 +1,3 @@
+#!/bin/bash
+# tea keeps its logins under $XDG_CONFIG_HOME/tea, so point that at the agent folder.
+XDG_CONFIG_HOME="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}/xdg" exec /opt/homebrew/bin/tea "$@"

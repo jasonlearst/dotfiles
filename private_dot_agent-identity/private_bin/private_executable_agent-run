@@ -1,0 +1,26 @@
+#!/bin/bash
+# agent-run [command [args...]]: run a command under the agent identity.
+# With no command, starts an agent shell ($SHELL). Check it with agent-whoami.
+
+AGENT_IDENTITY_DIR="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+if ! . "$AGENT_IDENTITY_DIR/activate"; then
+  echo "agent-run: could not load $AGENT_IDENTITY_DIR/activate" >&2
+  exit 1
+fi
+
+[ $# -gt 0 ] || set -- "${SHELL:-/bin/zsh}"
+
+case "${1##*/}" in
+  fish)
+    # config.fish and universal variables (fish_variables) bring back
+    # SSH_AUTH_SOCK, SOPS_AGE_KEY_CMD and the PATH order; -C runs after them.
+    # fish exports a universal even under an unexported global, and erasing
+    # it would edit fish_variables, so it's overridden with an exported empty
+    # global instead. The tools all treat empty as unset.
+    fish=$1
+    shift
+    exec "$fish" -C "for v in $AGENT_IDENTITY_UNSET; set -eg \$v; set -q \$v; and set -gx \$v ''; end; fish_add_path --move --path '$AGENT_IDENTITY_DIR/shims'" "$@"
+    ;;
+esac
+
+exec "$@"

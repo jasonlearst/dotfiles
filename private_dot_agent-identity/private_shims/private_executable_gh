@@ -1,0 +1,3 @@
+#!/bin/bash
+# gh with a GitHub App token for the account the command targets.
+exec "${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}/bin/agent-github-app" gh "$@"

@@ -1,0 +1,80 @@
+# Agent identity. Source from zsh or bash to put the current shell on it:
+#   . ~/.agent-identity/activate
+# agent-run sources it for you. Claude Code pastes this file's text ahead of
+# every Bash command (CLAUDE_ENV_FILE), so nothing here may rely on the file's
+# own path, and the file is read-only so no hook can append to it.
+# See ~/.agent-identity/README.md.
+
+AGENT_IDENTITY_DIR="${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}"
+_ai="$AGENT_IDENTITY_DIR"
+
+# Anything that would hand the agent the personal identity: agent sockets,
+# tokens, and pointers at the personal 1Password vaults.
+export AGENT_IDENTITY_UNSET="SSH_AUTH_SOCK SSH_AGENT_PID GIT_SSH GH_TOKEN GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN GITEA_TOKEN GITEA_ACCESS_TOKEN NPM_TOKEN NODE_AUTH_TOKEN RAILWAY_TOKEN CLOUDSDK_CORE_ACCOUNT CLOUDSDK_AUTH_ACCESS_TOKEN_FILE CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE GOOGLE_OAUTH_ACCESS_TOKEN OP_ACCOUNT OP_CONNECT_HOST OP_CONNECT_TOKEN SOPS_AGE_KEY_CMD"
+eval "unset $AGENT_IDENTITY_UNSET"
+
+export AGENT_IDENTITY=1 AGENT_IDENTITY_DIR
+export AGENT_SSH_KEY="$_ai/ssh/id_ed25519_agent_{{ .chezmoi.hostname }}"
+export GIT_SSH_COMMAND="/usr/bin/ssh -F '$_ai/ssh/config' -i '$AGENT_SSH_KEY' -o IdentitiesOnly=yes -o IdentityAgent=none"
+
+export GIT_CONFIG_GLOBAL="$_ai/git/config"
+export GIT_CONFIG_NOSYSTEM=1
+_ai_name=$(command git config --file "$_ai/git/config" user.name)
+_ai_email=$(command git config --file "$_ai/git/config" user.email)
+export GIT_AUTHOR_NAME="$_ai_name" GIT_AUTHOR_EMAIL="$_ai_email"
+export GIT_COMMITTER_NAME="$_ai_name" GIT_COMMITTER_EMAIL="$_ai_email"
+
+# Command-scope git config outranks a repo's own .git/config, so a repo
+# can't switch the author, credential helpers or signing back.
+_ai_n=0
+_ai_git() { export "GIT_CONFIG_KEY_$_ai_n=$1" "GIT_CONFIG_VALUE_$_ai_n=$2"; _ai_n=$((_ai_n + 1)); }
+_ai_git user.name "$_ai_name"
+_ai_git user.email "$_ai_email"
+_ai_git credential.helper ""
+# GitHub goes through the agent's GitHub App: HTTPS only, one-hour tokens,
+# and the repo path tells the helper which installation to use.
+_ai_git credential.https://github.com.helper "!$_ai/bin/agent-github-app git-credential"
+_ai_git credential.https://github.com.useHttpPath true
+_ai_git url.https://github.com/.insteadOf "git@github.com:"
+_ai_git url.https://github.com/.insteadOf "ssh://git@github.com/"
+_ai_git commit.gpgSign false
+_ai_git tag.gpgSign false
+_ai_git gpg.ssh.program /usr/bin/ssh-keygen
+_ai_git user.signingKey "$AGENT_SSH_KEY.pub"
+export GIT_CONFIG_COUNT=$_ai_n
+
+export GH_CONFIG_DIR="$_ai/gh"
+export NPM_CONFIG_USERCONFIG="$_ai/npm/npmrc"
+export DOCKER_CONFIG="$_ai/docker"
+export CLOUDSDK_CONFIG="$_ai/gcloud"
+# Points inside the agent folder even before it exists, so Google client
+# libraries fail instead of falling back to the personal ~/.config/gcloud.
+export GOOGLE_APPLICATION_CREDENTIALS="$_ai/gcloud/application_default_credentials.json"
+export GNUPGHOME="$_ai/gnupg"
+
+# railway can't move its config folder, but a token in the environment wins
+# over the personal login in ~/.railway. The placeholder makes it fail closed.
+if [ -r "$_ai/railway/api-token" ]; then
+  IFS= read -r _ai_tok < "$_ai/railway/api-token"
+else
+  _ai_tok=agent-identity-has-no-railway-token
+fi
+export RAILWAY_API_TOKEN="$_ai_tok"
+
+# Any zsh started from here runs the personal startup files through
+# ~/.agent-identity/zsh, which re-applies this file afterwards.
+export ZDOTDIR="$_ai/zsh"
+export CLAUDE_ENV_FILE="$_ai/activate"
+
+# Shims first, exactly once, even after a startup file pushed others ahead.
+_ai_rest="$PATH:"
+_ai_p=""
+while [ -n "$_ai_rest" ]; do
+  _ai_e=${_ai_rest%%:*}
+  _ai_rest=${_ai_rest#*:}
+  [ "$_ai_e" = "$_ai/shims" ] || _ai_p="$_ai_p${_ai_p:+:}$_ai_e"
+done
+export PATH="$_ai/shims${_ai_p:+:$_ai_p}"
+
+unset _ai _ai_name _ai_email _ai_n _ai_tok _ai_p _ai_rest _ai_e
+unset -f _ai_git

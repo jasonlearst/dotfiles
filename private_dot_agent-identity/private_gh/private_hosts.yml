@@ -1,0 +1,7 @@
+github.com:
+    users:
+        agent-not-signed-in:
+            oauth_token: agent-identity-placeholder-not-a-token
+    git_protocol: https
+    oauth_token: agent-identity-placeholder-not-a-token
+    user: agent-not-signed-in
