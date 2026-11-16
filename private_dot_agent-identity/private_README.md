@@ -39,8 +39,9 @@ shims/                on PATH only in agent sessions:
   gh                    runs gh with an app token for the account it targets
   tea                   points tea at xdg/tea
   railway               passes railway/api-token to railway alone
-owner-shims/          on PATH only inside as-owner: ssh scp sftp op as you, logged
   op                    refuses unless OP_SERVICE_ACCOUNT_TOKEN is set
+owner-shims/          on PATH only inside as-owner: ssh scp sftp op as you, logged
+  op                    stops first if macOS hides 1Password's app data
 ssh/                  config; per machine: id_ed25519_agent_<host>{,.pub}, known_hosts
 git/config            GIT_CONFIG_GLOBAL; author and default email from chezmoi data
                       (agentName, agentEmail; `chezmoi init` asks for them); aliases
@@ -161,6 +162,22 @@ again. Each run, and each ssh and op call in it, is logged to
 `/usr/bin/log show --last 1d --predicate 'eventMessage BEGINSWITH "as-owner "'`.
 Claude Code always asks before running `as-owner`, and before the direct
 bypasses (`SSH_AUTH_SOCK=…`, `/usr/bin/ssh`, `/usr/local/bin/op`).
+
+`op` needs one more thing than ssh. It reads the 1Password app's settings in
+`~/Library/Group Containers/2BUA8C4S2C.com.1password`, and macOS lets a process
+read another app's data only when the app it runs in has Full Disk Access. For
+Claude tabs that app is Workbench, so Workbench needs Full Disk Access (System
+Settings → Privacy & Security → Full Disk Access), then a quit and reopen.
+macOS never prompts for it. Without it, ssh still works (connecting to
+1Password's agent socket isn't blocked), but `op` inside `as-owner` stops before
+1Password asks anything and names the app to grant; `op` itself would only say
+"No accounts configured". To check an app, run this in it:
+
+    head -c1 ~/Library/Group\ Containers/2BUA8C4S2C.com.1password/Library/Application\ Support/1Password/Data/settings/settings.json >/dev/null && echo ok
+
+The grant isn't limited to `as-owner`: everything in every Workbench tab,
+unattended Claude sessions included, can then read other apps' data, such as
+Mail and Messages, without asking.
 
 What it weakens, by design: during a run, that process tree is you over SSH
 (root on hosts, with your keys) and can hold your secrets, such as the vault
