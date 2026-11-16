@@ -7,6 +7,7 @@ To draft one, read the repo: its remote, build and test setup, CI config, any ex
 Fields, in this order. Leave out any that don't apply:
 
 - **Forge:** `GitHub <owner/repo>`, or `Gitea <owner/repo>, tea login <login>`.
+- **Owner:** only when the owner's login isn't the account in the repo slug, as with an org repo. New issues and PRs are assigned to it.
 - **Visibility:** public or private. In a public repo, issues, commit messages and PR bodies are sanitized (`public.md`).
 - **Base:** only when work targets something other than origin's default branch.
 - **Hand-off:** `local` when the owner merges branches locally instead of reviewing PRs. Leave it out for the default, a PR.

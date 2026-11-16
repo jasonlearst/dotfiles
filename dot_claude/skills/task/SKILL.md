@@ -34,7 +34,7 @@ Run the Tasks section's check tiers in order. A tier starts only when the one be
 
 Run the owner tier only when step 2 said so. If the Tasks section names a runbook, follow it. Otherwise:
 
-1. Commit, push, and open a draft PR whose body lists the checks under `## <tier> pending`, before asking the owner anything: an unanswered question then loses nothing. With a local hand-off, commit and write the checks to `<tier>-pending.md` in the scratchpad instead.
+1. Commit, push, and open a draft PR, assigned to the owner with their review requested, whose body lists the checks under `## <tier> pending`, before asking the owner anything: an unanswered question then loses nothing. With a local hand-off, commit and write the checks to `<tier>-pending.md` in the scratchpad instead.
 2. Send a `PushNotification` if the session has that tool, then ask one blocking `AskUserQuestion` with the whole setup: which device, what to connect or unlock, how many checks, how long, and which installed build gets replaced.
 3. Give the checks one at a time, waiting for each result.
 4. On a failure, fix it, re-run the tiers below that the fix touches, push, and repeat only the affected checks.
@@ -50,7 +50,7 @@ With a local hand-off, commit, then report the branch, what changed, the verific
 
 1. Commit with Conventional Commit subjects and the session's attribution trailers.
 2. `git push -u origin HEAD`.
-3. Open the PR against the base branch, or update the draft and mark it ready. The body has: a summary, `Closes #$ARGUMENTS`, what changed per area, verification (commands and results, screens checked, screenshot paths), the owner tier (results, or not needed and why), and anything left for a follow-up issue.
+3. Open the PR against the base branch, or update the draft and mark it ready. Either way it ends up assigned to the owner with their review requested, which is how they hear about it. The body has: a summary, `Closes #$ARGUMENTS`, what changed per area, verification (commands and results, screens checked, screenshot paths), the owner tier (results, or not needed and why), and anything left for a follow-up issue.
 4. If the Tasks section says the repo runs CI, wait for it, and fix and push until it's green.
 5. Keep the worktree: the user may test it, and review fixes may follow. `/worktree clean` removes it once the PR is merged.
 6. Give the user the PR URL, the follow-ups, the worktree's path, and how to try the change from there. Work the issue raised but didn't ask for goes to `/file-issue`, not into this PR.
