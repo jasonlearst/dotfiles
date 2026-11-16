@@ -5,6 +5,23 @@ if [ -n "${AS_OWNER_LOG:-}" ]; then
   refs=$( { printf '%s\n' "$@"; env; } | grep -oE "op://[^\"']+" | sed 's/[[:space:]]*$//' | sort -u | paste -sd'|' -)
   printf '%s %s op %s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "${AS_OWNER_RUN:-}" "${1:-}" "${refs:+refs: $refs}" >> "$AS_OWNER_LOG"
 fi
+
+# op reads the 1Password app's settings to find its CLI integration. When macOS
+# hides them, op says "No accounts configured", which points the wrong way.
+# macOS judges the app the session runs in (the topmost .app above us), and
+# only that app's Full Disk Access lets the read through.
+settings="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/Library/Application Support/1Password/Data/settings/settings.json"
+if [ -e "$settings" ] && ! head -c1 "$settings" >/dev/null 2>&1; then
+  app="" pid=$PPID
+  while [ "${pid:-0}" -gt 1 ]; do
+    cmd=$(ps -o comm= -p "$pid")
+    case $cmd in *.app/Contents/MacOS/*) app=${cmd%%.app/*}; app=${app##*/} ;; esac
+    pid=$(ps -o ppid= -p "$pid" | tr -d ' ')
+  done
+  echo "as-owner: this process can't read 1Password's app data (macOS privacy), so op would fail. Give ${app:-the app this runs in} Full Disk Access in System Settings > Privacy & Security, then quit and reopen it, or run the command in your own terminal." >&2
+  exit 1
+fi
+
 . "${AGENT_IDENTITY_DIR:-$HOME/.agent-identity}/lib/real-command"
 real_command op || exit
 exec "$real" "$@"
