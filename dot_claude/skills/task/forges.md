@@ -1,6 +1,8 @@
 # Forge commands
 
-The repo's `## Tasks` section names the forge, the repo slug and, on Gitea, the tea login. Below, `<repo>` is the slug, `<login>` the tea login, and `<base>` the Tasks section's base branch, or origin's default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, minus `origin/`) when it names none.
+The repo's `## Tasks` section names the forge, the repo slug and, on Gitea, the tea login. Below, `<repo>` is the slug, `<login>` the tea login, and `<base>` the Tasks section's base branch, or origin's default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, minus `origin/`) when it names none. `<owner>` is the Tasks section's owner login, or the account in `<repo>` when it names none.
+
+The agent posts under its own account, and the owner gets no notification for an issue or PR they aren't assigned to, asked to review or mentioned in. So every new issue is assigned to `<owner>`, and every PR is assigned to `<owner>` with their review requested.
 
 On Gitea every command passes `--login <login>`, so issues, comments and PRs come from that account. `git push` goes over SSH as that account too: Claude Code runs every command under the agent identity in `~/.agent-identity`, whose SSH key belongs to it. The account needs write access to the repo.
 
@@ -29,8 +31,8 @@ tea issues list --login <login> --repo <repo> --state all --keyword "<words>"
 ## File an issue
 
 ```sh
-gh issue create --repo <repo> --title "<title>" --body-file <file> [--label <label>]
-tea issues create --login <login> --repo <repo> --title "<title>" --description-file <file> [--labels <label>]
+gh issue create --repo <repo> --title "<title>" --body-file <file> --assignee <owner> [--label <label>]
+tea issues create --login <login> --repo <repo> --title "<title>" --description-file <file> --assignees <owner> [--labels <label>]
 ```
 
 The command prints the issue's URL. Then run the Tasks section's board command, if it has one.
@@ -63,8 +65,21 @@ tea api --login <login> '/repos/<repo>/pulls/<n>/reviews' | jq -r '.[] | "--- \(
 Push the branch first.
 
 ```sh
-gh pr create --repo <repo> --base <base> --title "<title>" --body-file <file> [--draft]
-tea pulls create --login <login> --repo <repo> --base <base> --head <branch> --title "<title>" --description-file <file> [--draft]
+gh pr create --repo <repo> --base <base> --title "<title>" --body-file <file> --assignee <owner> --reviewer <owner> [--draft]
+tea pulls create --login <login> --repo <repo> --base <base> --head <branch> --title "<title>" --description-file <file> --assignees <owner> [--draft]
+jq -n --arg owner <owner> '{reviewers: [$owner]}' | tea api --login <login> -X POST /repos/<repo>/pulls/<n>/requested_reviewers -d @-
+```
+
+`tea pulls create` can't request a review, so on Gitea the second command does it.
+
+## Assign the owner and request their review on an existing PR
+
+For a PR opened before this rule, or one missing either.
+
+```sh
+gh pr edit <n> --repo <repo> --add-assignee <owner> --add-reviewer <owner>
+jq -n --arg owner <owner> '{assignees: [$owner]}' | tea api --login <login> -X PATCH /repos/<repo>/issues/<n> -d @-
+jq -n --arg owner <owner> '{reviewers: [$owner]}' | tea api --login <login> -X POST /repos/<repo>/pulls/<n>/requested_reviewers -d @-
 ```
 
 Gitea marks a draft by prefixing the title with `WIP: `.

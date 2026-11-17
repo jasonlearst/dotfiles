@@ -22,5 +22,5 @@ Before step 1, read the `## Tasks` section of the repo's root `CLAUDE.md` and `~
    - **Acceptance criteria:** a checkbox list, each item observable, including tests and doc updates. Tag an item only the owner can check the way the Tasks section's owner tier says.
    - **Open questions:** the decisions only the user can make, each with your proposed answer.
 5. **Sanitize** if the repo is public, as `~/.claude/skills/task/public.md` says.
-6. **File** each issue with its own command. The title names the problem or the wish in a few words, as the user would say it. Add the label and board the Tasks section names, if any.
+6. **File** each issue with its own command. The title names the problem or the wish in a few words, as the user would say it. Assign it to the owner, so they're notified. Add the label and board the Tasks section names, if any.
 7. **Report** each URL, a two-line summary, and the open questions.
